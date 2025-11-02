@@ -43,16 +43,16 @@
 }
 
 :root {
-  /* Modern minimalist palette: Deep charcoal + emerald green + warm gold accents */
-  --primary: #1a472a; /* Deep forest green - luxury fitness */
-  --primary-foreground: #f5f9f7;
-  --sidebar-primary: #2d5a3d;
-  --sidebar-primary-foreground: #f5f9f7;
-  --chart-1: #10b981;
-  --chart-2: #059669;
-  --chart-3: #047857;
-  --chart-4: #065f46;
-  --chart-5: #064e3b;
+  /* Enhanced Design System: Forest Green + Emerald + Gold */
+  --primary: #2D5016; /* Forest Green - premium brand color */
+  --primary-foreground: #ffffff;
+  --sidebar-primary: #2D5016;
+  --sidebar-primary-foreground: #ffffff;
+  --chart-1: #50C878; /* Emerald */
+  --chart-2: #2D5016; /* Forest Green */
+  --chart-3: #FFD700; /* Gold */
+  --chart-4: #228B22; /* Forest Green lighter */
+  --chart-5: #32CD32; /* Lime Green */
   --radius: 0.65rem;
   --background: #fafbf9; /* Off-white with slight warm tone */
   --foreground: #1a1a1a; /* Deep charcoal */
@@ -64,26 +64,26 @@
   --secondary-foreground: #3f3f3f;
   --muted: #e5e7e1;
   --muted-foreground: #6b7280;
-  --accent: #d4a574; /* Warm gold accent */
-  --accent-foreground: #1a1a1a;
+  --accent: #FFD700; /* Gold accent */
+  --accent-foreground: #2D5016;
   --destructive: #dc2626;
   --destructive-foreground: #ffffff;
   --border: #e5e7e1;
   --input: #f3f4f1;
-  --ring: #10b981;
+  --ring: #50C878; /* Emerald ring */
   --sidebar: #fafbf9;
   --sidebar-foreground: #1a1a1a;
   --sidebar-accent: #e5e7e1;
   --sidebar-accent-foreground: #1a472a;
   --sidebar-border: #e5e7e1;
-  --sidebar-ring: #10b981;
+  --sidebar-ring: #50C878; /* Emerald sidebar ring */
 }
 
 .dark {
-  --primary: #10b981; /* Emerald green - accessible fitness */
-  --primary-foreground: #f5f9f7;
-  --sidebar-primary: #059669;
-  --sidebar-primary-foreground: #f5f9f7;
+  --primary: #50C878; /* Emerald - bright in dark mode */
+  --primary-foreground: #000000;
+  --sidebar-primary: #50C878;
+  --sidebar-primary-foreground: #000000;
   --background: #0f1419; /* Deep dark background */
   --foreground: #f0f1ed;
   --card: #1a1f26;
@@ -94,24 +94,24 @@
   --secondary-foreground: #d1d5db;
   --muted: #374151;
   --muted-foreground: #9ca3af;
-  --accent: #d4a574; /* Warm gold accent - consistent */
-  --accent-foreground: #1a1a1a;
+  --accent: #FFD700; /* Gold accent - consistent */
+  --accent-foreground: #000000;
   --destructive: #ef4444;
   --destructive-foreground: #ffffff;
   --border: #2d3748;
   --input: #1f2937;
-  --ring: #10b981;
-  --chart-1: #10b981;
-  --chart-2: #059669;
-  --chart-3: #047857;
-  --chart-4: #065f46;
-  --chart-5: #064e3b;
+  --ring: #50C878; /* Emerald ring */
+  --chart-1: #50C878; /* Emerald */
+  --chart-2: #2D5016; /* Forest Green */
+  --chart-3: #FFD700; /* Gold */
+  --chart-4: #228B22; /* Forest Green lighter */
+  --chart-5: #32CD32; /* Lime Green */
   --sidebar: #1a1f26;
   --sidebar-foreground: #f0f1ed;
   --sidebar-accent: #2d3748;
   --sidebar-accent-foreground: #10b981;
   --sidebar-border: #2d3748;
-  --sidebar-ring: #10b981;
+  --sidebar-ring: #50C878; /* Emerald sidebar ring */
 }
 
 @layer base {
@@ -202,13 +202,64 @@
     animation: fadeIn 0.3s ease-out;
   }
 
-  /* Subtle hover effects */
+  /* Enhanced Design System Animations */
   .hover-lift {
     @apply transition-all duration-200 hover:shadow-lg hover:scale-105;
   }
 
-  /* Card styling with subtle shadow */
+  /* Premium button hover effects */
+  .btn-primary-enhanced {
+    @apply transition-all duration-200 ease-out hover:scale-105 active:scale-95 hover:shadow-md;
+  }
+
+  /* Card styling with motion enhancements */
   .card-base {
     @apply bg-card text-card-foreground rounded-lg border border-border shadow-sm;
+  }
+
+  .card-hover {
+    @apply transition-all duration-200 ease-out hover:shadow-xl hover:scale-[1.02] hover:-translate-y-1;
+  }
+
+  /* Modal fade in animation */
+  @keyframes modalFadeIn {
+    from {
+      opacity: 0;
+      transform: scale(0.95) translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+  }
+
+  .animate-modal-in {
+    animation: modalFadeIn 0.2s ease-out;
+  }
+
+  /* Stagger animation for lists */
+  @keyframes staggerIn {
+    from {
+      opacity: 0;
+      transform: translateX(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  .animate-stagger-in {
+    animation: staggerIn 0.3s ease-out;
+  }
+
+  /* Premium gold accent glow */
+  .gold-glow {
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+  }
+
+  /* Emerald accent glow */
+  .emerald-glow {
+    box-shadow: 0 0 20px rgba(80, 200, 120, 0.3);
   }
 }
