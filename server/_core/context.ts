@@ -1,11 +1,13 @@
 import type { CreateExpressContextOptions } from "@trpc/server/adapters/express";
 import type { User } from "../../drizzle/schema";
 import { supabaseAuth } from "./supabase";
+import * as abr from "../lib/abr";
 
 export type TrpcContext = {
   req: CreateExpressContextOptions["req"];
   res: CreateExpressContextOptions["res"];
   user: User | null;
+  abr: typeof abr;
 };
 
 export async function createContext(
@@ -24,5 +26,6 @@ export async function createContext(
     req: opts.req,
     res: opts.res,
     user,
+    abr,
   };
 }

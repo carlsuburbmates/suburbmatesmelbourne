@@ -177,6 +177,27 @@ export async function updateBusinessAbnStatus(businessId: number, status: "pendi
   return await db.update(businesses).set({ abnVerifiedStatus: status }).where(eq(businesses.id, businessId));
 }
 
+export async function updateBusinessABN(businessId: number, data: {
+  abn: string;
+  abnVerifiedStatus: "pending" | "verified" | "rejected";
+  abnDetails?: string;
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const updateData: any = {
+    abn: data.abn,
+    abnVerifiedStatus: data.abnVerifiedStatus,
+  };
+
+  // Only include abnDetails if provided
+  if (data.abnDetails) {
+    updateData.abnDetails = data.abnDetails;
+  }
+
+  return await db.update(businesses).set(updateData).where(eq(businesses.id, businessId));
+}
+
 // ============ AGREEMENT QUERIES ============
 
 export async function createAgreement(data: {

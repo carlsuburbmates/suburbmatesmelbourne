@@ -112,6 +112,86 @@ export const appRouter = router({
       }),
 
     /**
+     * Submit ABN for verification
+     */
+    submitABN: protectedProcedure
+      .input(
+        z.object({
+          businessId: z.number(),
+          abn: z.string().min(11).max(11),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        // Verify user owns the business or is admin
+        const business = await db.getBusinessById(input.businessId);
+        if (!business) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Business not found",
+          });
+        }
+
+        if (business.ownerId !== ctx.user.id && ctx.user.role !== "admin") {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "You can only verify ABN for your own businesses",
+          });
+        }
+
+        try {
+          // Import ABN service dynamically to avoid startup issues
+          const { getABNDetails } = await import("./lib/abr");
+          
+          // Lookup ABN details
+          const abnDetails = await getABNDetails(input.abn);
+          
+          if (!abnDetails) {
+            throw new TRPCError({
+              code: "BAD_REQUEST",
+              message: "ABN not found in Australian Business Register",
+            });
+          }
+
+          if (!abnDetails.isActive) {
+            throw new TRPCError({
+              code: "BAD_REQUEST",
+              message: "ABN is not active in Australian Business Register",
+            });
+          }
+
+          // Update business with verified ABN
+          await db.updateBusinessABN(input.businessId, {
+            abn: input.abn,
+            abnVerifiedStatus: "verified",
+            abnDetails: JSON.stringify(abnDetails),
+          });
+
+          return {
+            success: true,
+            abnDetails,
+            message: "ABN successfully verified",
+          };
+        } catch (error) {
+          console.error("ABN verification failed:", error);
+          
+          // Update status to rejected
+          await db.updateBusinessABN(input.businessId, {
+            abn: input.abn,
+            abnVerifiedStatus: "rejected",
+          });
+
+          if (error instanceof TRPCError) {
+            throw error;
+          }
+
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: error instanceof Error ? error.message : "ABN verification failed",
+          });
+        }
+      }),
+
+    /**
      * Get Melbourne suburbs for geofencing
      */
     getMelbournSuburbs: publicProcedure

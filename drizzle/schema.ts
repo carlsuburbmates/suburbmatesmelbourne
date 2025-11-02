@@ -52,6 +52,7 @@ export const businesses = mysqlTable(
     businessName: varchar("businessName", { length: 255 }).notNull(),
     abn: varchar("abn", { length: 11 }).unique(),
     abnVerifiedStatus: mysqlEnum("abnVerifiedStatus", ["pending", "verified", "rejected"]).default("pending").notNull(),
+    abnDetails: text("abnDetails"), // JSON string with ABN lookup details
     services: text("services"), // JSON array of service categories
     about: text("about"),
     address: varchar("address", { length: 500 }),
