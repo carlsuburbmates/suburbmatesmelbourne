@@ -279,25 +279,6 @@ export async function getLatestAgreement(
 
 // ============ CONSENT QUERIES ============
 
-export async function createConsent(data: {
-  userId: number;
-  consentType:
-    | "marketing_emails"
-    | "sms_notifications"
-    | "analytics"
-    | "third_party_sharing";
-  granted: boolean;
-  version: string;
-  ipAddress?: string;
-  userAgent?: string;
-  expiresAt?: Date;
-}) {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-
-  return await db.insert(consents).values(data);
-}
-
 export async function getConsentsByUserId(userId: number) {
   const db = await getDb();
   if (!db) return [];
@@ -305,27 +286,28 @@ export async function getConsentsByUserId(userId: number) {
   return await db.select().from(consents).where(eq(consents.userId, userId));
 }
 
-export async function getUserConsent(
-  userId: number,
-  consentType:
-    | "marketing_emails"
-    | "sms_notifications"
-    | "analytics"
-    | "third_party_sharing"
-) {
+export async function getUserConsentActions(userId: number) {
   const db = await getDb();
-  if (!db) return undefined;
+  if (!db) return [];
 
-  const result = await db
+  return await db
     .select()
     .from(consents)
-    .where(
-      and(eq(consents.userId, userId), eq(consents.consentType, consentType))
-    )
-    .orderBy(desc(consents.createdAt))
-    .limit(1);
+    .where(eq(consents.userId, userId))
+    .orderBy(desc(consents.timestamp));
+}
 
-  return result.length > 0 ? result[0] : undefined;
+// Deprecated old consent functions - kept for backwards compatibility with existing router
+export async function createConsent(data: any) {
+  throw new Error(
+    "createConsent is deprecated - use logConsent from dataApi.ts instead"
+  );
+}
+
+export async function getUserConsent(userId: number, consentType: string) {
+  throw new Error(
+    "getUserConsent is deprecated - use getUserConsentActions instead"
+  );
 }
 
 // ============ EMAIL TOKEN QUERIES ============

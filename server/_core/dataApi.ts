@@ -106,7 +106,7 @@ export async function logConsent(userId: number, action: string) {
 
   // Return the inserted record ID
   return {
-    id: result.insertId,
+    id: Number(result[0].insertId),
     userId,
     action,
     timestamp,
