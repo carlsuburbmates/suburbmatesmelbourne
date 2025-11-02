@@ -138,29 +138,21 @@ export type Agreement = typeof agreements.$inferSelect;
 export type InsertAgreement = typeof agreements.$inferInsert;
 
 /**
- * Consents table - privacy, marketing, and GDPR compliance tracking
+ * Consents table - audit-ready consent logs with immutable hashes
+ * Specification: (id, userId, action, timestamp, immutableHash)
  */
 export const consents = mysqlTable(
   "consents",
   {
     id: int("id").autoincrement().primaryKey(),
     userId: int("userId").notNull(),
-    consentType: mysqlEnum("consentType", [
-      "marketing_emails",
-      "sms_notifications",
-      "analytics",
-      "third_party_sharing",
-    ]).notNull(),
-    granted: boolean("granted").default(false).notNull(),
-    version: varchar("version", { length: 20 }).notNull(),
-    ipAddress: varchar("ipAddress", { length: 45 }),
-    userAgent: text("userAgent"),
-    expiresAt: timestamp("expiresAt"),
-    createdAt: timestamp("createdAt").defaultNow().notNull(),
-    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+    action: varchar("action", { length: 255 }).notNull(), // consent action taken
+    timestamp: timestamp("timestamp").defaultNow().notNull(),
+    immutableHash: varchar("immutableHash", { length: 64 }).notNull(), // SHA-256 hash for integrity
   },
   table => ({
     userIdIdx: index("userIdIdx").on(table.userId),
+    timestampIdx: index("timestampIdx").on(table.timestamp),
     userFk: foreignKey({ columns: [table.userId], foreignColumns: [users.id] }),
   })
 );

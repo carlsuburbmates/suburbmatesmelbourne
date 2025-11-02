@@ -5,6 +5,9 @@
  *   })
  */
 import { ENV } from "./env";
+import { createHash } from "crypto";
+import { getDb } from "../db";
+import { consents } from "../../drizzle/schema";
 
 export type DataApiCallOptions = {
   query?: Record<string, unknown>;
@@ -25,8 +28,13 @@ export async function callDataApi(
   }
 
   // Build the full URL by appending the service path to the base URL
-  const baseUrl = ENV.forgeApiUrl.endsWith("/") ? ENV.forgeApiUrl : `${ENV.forgeApiUrl}/`;
-  const fullUrl = new URL("webdevtoken.v1.WebDevService/CallApi", baseUrl).toString();
+  const baseUrl = ENV.forgeApiUrl.endsWith("/")
+    ? ENV.forgeApiUrl
+    : `${ENV.forgeApiUrl}/`;
+  const fullUrl = new URL(
+    "webdevtoken.v1.WebDevService/CallApi",
+    baseUrl
+  ).toString();
 
   const response = await fetch(fullUrl, {
     method: "POST",
@@ -61,4 +69,47 @@ export async function callDataApi(
     }
   }
   return payload;
+}
+
+/**
+ * Logs user consent actions with cryptographic integrity
+ * Creates an immutable hash of the consent data for audit trails
+ *
+ * @param userId - User ID from authenticated context (numeric ID from database)
+ * @param action - Consent action (e.g., 'privacy_accepted', 'marketing_opted_in')
+ * @returns Promise resolving to the inserted consent record
+ */
+export async function logConsent(userId: number, action: string) {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database connection not available");
+  }
+
+  const timestamp = new Date();
+
+  // Create immutable hash of consent data for audit integrity
+  const dataToHash = JSON.stringify({
+    userId,
+    action,
+    timestamp: timestamp.toISOString(),
+  });
+
+  const immutableHash = createHash("sha256").update(dataToHash).digest("hex");
+
+  // Insert consent record and get the insertId
+  const result = await db.insert(consents).values({
+    userId,
+    action,
+    timestamp,
+    immutableHash,
+  });
+
+  // Return the inserted record ID
+  return {
+    id: result.insertId,
+    userId,
+    action,
+    timestamp,
+    immutableHash,
+  };
 }
