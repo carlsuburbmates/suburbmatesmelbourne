@@ -7,6 +7,7 @@ import posthog from "posthog-js";
 import superjson from "superjson";
 import App from "./App";
 import { getLoginUrl } from "./const";
+import { registerSW } from "./registerSW";
 import "./index.css";
 
 // Initialize PostHog
@@ -65,16 +66,11 @@ const trpcClient = trpc.createClient({
 });
 
 // Register service worker for PWA support
-if ("serviceWorker" in navigator && import.meta.env.PROD) {
+if (import.meta.env.PROD) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker
-      .register("/sw.js")
-      .then(registration => {
-        console.log("SW registered: ", registration);
-      })
-      .catch(registrationError => {
-        console.log("SW registration failed: ", registrationError);
-      });
+    registerSW().catch(error => {
+      console.error("Service worker registration failed:", error);
+    });
   });
 }
 
