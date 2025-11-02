@@ -1,0 +1,32 @@
+{
+  "folders": [
+    {
+      "name": "suburbmates (Active)",
+      "path": ".",
+    },
+    {
+      "name": "suburbmates2 (Reference)",
+      "path": "../suburbmates2",
+    },
+  ],
+  "settings": {
+    // Workspace Context: Entire Workspace - suburbmates/ is active, suburbmates2/ is reference
+    "typescript.preferences.includePackageJsonAutoImports": "on",
+    "typescript.suggest.autoImports": true,
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "files.associations": {
+      "*.tsx": "typescriptreact",
+      "*.ts": "typescript",
+    },
+  },
+  "extensions": {
+    "recommendations": [
+      "esbenp.prettier-vscode",
+      "bradlc.vscode-tailwindcss",
+      "ms-vscode.vscode-typescript-next",
+      "github.copilot",
+      "github.copilot-chat",
+    ],
+  },
+}
