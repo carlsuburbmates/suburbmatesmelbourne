@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
+import { Sparkles } from "lucide-react";
 
 export default function VendorDashboard() {
   const { user } = useAuth();
@@ -34,9 +35,37 @@ export default function VendorDashboard() {
     },
   });
 
+  const generateDescriptionMutation = trpc.llm.generateBusinessDescription.useMutation({
+    onSuccess: (response) => {
+      if (response.success) {
+        setFormData({ ...formData, about: response.description });
+        toast.success("Description generated successfully!");
+      } else {
+        toast.error("Failed to generate description");
+      }
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to generate description");
+    },
+  });
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     createBusinessMutation.mutate(formData);
+  };
+
+  const handleGenerateDescription = () => {
+    if (!formData.businessName.trim()) {
+      toast.error("Please enter a business name first");
+      return;
+    }
+    
+    // For category, we'll use a simple classification based on business name
+    // or default to "General Business" - this could be enhanced with a category selector
+    generateDescriptionMutation.mutate({
+      name: formData.businessName,
+      category: "General Business" // Could be enhanced to detect or let user select category
+    });
   };
 
   return (
@@ -97,7 +126,26 @@ export default function VendorDashboard() {
             </div>
 
             <div>
-              <label className="text-sm font-medium mb-2 block">About</label>
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-sm font-medium">About</label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleGenerateDescription}
+                  disabled={generateDescriptionMutation.isPending || !formData.businessName.trim()}
+                  className="text-xs"
+                >
+                  {generateDescriptionMutation.isPending ? (
+                    <>Generating...</>
+                  ) : (
+                    <>
+                      <Sparkles className="h-3 w-3 mr-1" />
+                      Generate Description with AI
+                    </>
+                  )}
+                </Button>
+              </div>
               <textarea
                 placeholder="Tell us about your business..."
                 value={formData.about}

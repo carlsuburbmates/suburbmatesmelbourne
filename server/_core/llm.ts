@@ -331,3 +331,53 @@ export async function invokeLLM(params: InvokeParams): Promise<InvokeResult> {
 
   return (await response.json()) as InvokeResult;
 }
+
+/**
+ * Generate business description using AI
+ * @param name Business name
+ * @param category Business category or services
+ * @returns Generated description
+ */
+export async function generateBusinessDescription(name: string, category?: string): Promise<string> {
+  const categoryText = category ? ` specializing in ${category}` : '';
+  
+  const prompt = `Generate a professional and engaging business description for "${name}"${categoryText}. 
+
+The description should be:
+- 2-3 sentences long
+- Professional yet approachable
+- Highlight what makes the business unique
+- Include local Melbourne context if relevant
+- Focus on customer benefits and value proposition
+- Avoid generic phrases and be specific
+
+Do not include contact information, hours, or location details.`;
+
+  try {
+    const result = await invokeLLM({
+      messages: [
+        {
+          role: "system",
+          content: "You are a professional copywriter specializing in local business descriptions for Melbourne-based companies. Write compelling, unique descriptions that help businesses stand out in local directories."
+        },
+        {
+          role: "user", 
+          content: prompt
+        }
+      ],
+      maxTokens: 200,
+    });
+
+    const content = result.choices[0]?.message?.content;
+    const description = typeof content === 'string' ? content.trim() : null;
+    
+    if (!description) {
+      throw new Error("No description generated");
+    }
+
+    return description;
+  } catch (error) {
+    console.error("Failed to generate business description:", error);
+    throw new Error("Failed to generate business description. Please try again.");
+  }
+}

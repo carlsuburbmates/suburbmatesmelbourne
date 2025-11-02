@@ -376,6 +376,37 @@ export const appRouter = router({
         };
       }),
   }),
+
+  // ============ LLM ROUTER ============
+  llm: router({
+    /**
+     * Generate business description using AI
+     */
+    generateBusinessDescription: protectedProcedure
+      .input(
+        z.object({
+          name: z.string().min(1).max(255),
+          category: z.string().optional(),
+        })
+      )
+      .mutation(async ({ input }) => {
+        try {
+          const { generateBusinessDescription } = await import("./_core/llm");
+          const description = await generateBusinessDescription(input.name, input.category);
+          
+          return {
+            success: true,
+            description,
+          };
+        } catch (error) {
+          console.error("Failed to generate business description:", error);
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: error instanceof Error ? error.message : "Failed to generate description",
+          });
+        }
+      }),
+  }),
 });
 
 export type AppRouter = typeof appRouter;
