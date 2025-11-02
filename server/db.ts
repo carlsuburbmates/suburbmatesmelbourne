@@ -1,7 +1,15 @@
 import { eq, and, desc, like, isNull } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, businesses, agreements, consents, emailTokens, melbournSuburbs } from "../drizzle/schema";
-import { ENV } from './_core/env';
+import {
+  InsertUser,
+  users,
+  businesses,
+  agreements,
+  consents,
+  emailTokens,
+  melbournSuburbs,
+} from "../drizzle/schema";
+import { ENV } from "./_core/env";
 
 let _db: ReturnType<typeof drizzle> | null = null;
 
@@ -58,8 +66,8 @@ export async function upsertUser(user: InsertUser): Promise<void> {
       values.role = user.role;
       updateSet.role = user.role;
     } else if (user.openId === ENV.ownerOpenId) {
-      values.role = 'admin';
-      updateSet.role = 'admin';
+      values.role = "admin";
+      updateSet.role = "admin";
     }
 
     if (!values.lastSignedIn) {
@@ -86,7 +94,11 @@ export async function getUserByOpenId(openId: string) {
     return undefined;
   }
 
-  const result = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
+  const result = await db
+    .select()
+    .from(users)
+    .where(eq(users.openId, openId))
+    .limit(1);
 
   return result.length > 0 ? result[0] : undefined;
 }
@@ -129,7 +141,11 @@ export async function getBusinessById(id: number) {
   const db = await getDb();
   if (!db) return undefined;
 
-  const result = await db.select().from(businesses).where(eq(businesses.id, id)).limit(1);
+  const result = await db
+    .select()
+    .from(businesses)
+    .where(eq(businesses.id, id))
+    .limit(1);
   return result.length > 0 ? result[0] : undefined;
 }
 
@@ -137,7 +153,10 @@ export async function getBusinessesByOwnerId(ownerId: number) {
   const db = await getDb();
   if (!db) return [];
 
-  return await db.select().from(businesses).where(eq(businesses.ownerId, ownerId));
+  return await db
+    .select()
+    .from(businesses)
+    .where(eq(businesses.ownerId, ownerId));
 }
 
 export async function searchBusinesses(params: {
@@ -170,18 +189,27 @@ export async function searchBusinesses(params: {
     .offset(offset);
 }
 
-export async function updateBusinessAbnStatus(businessId: number, status: "pending" | "verified" | "rejected") {
+export async function updateBusinessAbnStatus(
+  businessId: number,
+  status: "pending" | "verified" | "rejected"
+) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
-  return await db.update(businesses).set({ abnVerifiedStatus: status }).where(eq(businesses.id, businessId));
+  return await db
+    .update(businesses)
+    .set({ abnVerifiedStatus: status })
+    .where(eq(businesses.id, businessId));
 }
 
-export async function updateBusinessABN(businessId: number, data: {
-  abn: string;
-  abnVerifiedStatus: "pending" | "verified" | "rejected";
-  abnDetails?: string;
-}) {
+export async function updateBusinessABN(
+  businessId: number,
+  data: {
+    abn: string;
+    abnVerifiedStatus: "pending" | "verified" | "rejected";
+    abnDetails?: string;
+  }
+) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
@@ -195,7 +223,10 @@ export async function updateBusinessABN(businessId: number, data: {
     updateData.abnDetails = data.abnDetails;
   }
 
-  return await db.update(businesses).set(updateData).where(eq(businesses.id, businessId));
+  return await db
+    .update(businesses)
+    .set(updateData)
+    .where(eq(businesses.id, businessId));
 }
 
 // ============ AGREEMENT QUERIES ============
@@ -218,17 +249,28 @@ export async function getAgreementsByBusinessId(businessId: number) {
   const db = await getDb();
   if (!db) return [];
 
-  return await db.select().from(agreements).where(eq(agreements.businessId, businessId));
+  return await db
+    .select()
+    .from(agreements)
+    .where(eq(agreements.businessId, businessId));
 }
 
-export async function getLatestAgreement(businessId: number, agreementType: "terms_of_service" | "privacy_policy" | "vendor_agreement") {
+export async function getLatestAgreement(
+  businessId: number,
+  agreementType: "terms_of_service" | "privacy_policy" | "vendor_agreement"
+) {
   const db = await getDb();
   if (!db) return undefined;
 
   const result = await db
     .select()
     .from(agreements)
-    .where(and(eq(agreements.businessId, businessId), eq(agreements.agreementType, agreementType)))
+    .where(
+      and(
+        eq(agreements.businessId, businessId),
+        eq(agreements.agreementType, agreementType)
+      )
+    )
     .orderBy(desc(agreements.acceptedAt))
     .limit(1);
 
@@ -259,16 +301,24 @@ export async function getUserConsentActions(userId: number) {
 
 // Deprecated old consent functions - kept for backwards compatibility with existing router
 export async function createConsent(data: any) {
-  throw new Error("createConsent is deprecated - use logConsent from dataApi.ts instead");
+  throw new Error(
+    "createConsent is deprecated - use logConsent from dataApi.ts instead"
+  );
 }
 
 export async function getUserConsent(userId: number, consentType: string) {
-  throw new Error("getUserConsent is deprecated - use getUserConsentActions instead");
+  throw new Error(
+    "getUserConsent is deprecated - use getUserConsentActions instead"
+  );
 }
 
 // ============ EMAIL TOKEN QUERIES ============
 
-export async function createEmailToken(email: string, token: string, expiresAt: Date) {
+export async function createEmailToken(
+  email: string,
+  token: string,
+  expiresAt: Date
+) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
@@ -292,7 +342,10 @@ export async function markEmailTokenAsUsed(tokenId: number) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
-  return await db.update(emailTokens).set({ usedAt: new Date() }).where(eq(emailTokens.id, tokenId));
+  return await db
+    .update(emailTokens)
+    .set({ usedAt: new Date() })
+    .where(eq(emailTokens.id, tokenId));
 }
 
 // ============ MELBOURNE SUBURBS QUERIES ============
@@ -311,6 +364,10 @@ export async function getMelbournSuburbByName(suburb: string) {
   const db = await getDb();
   if (!db) return undefined;
 
-  const result = await db.select().from(melbournSuburbs).where(eq(melbournSuburbs.suburb, suburb)).limit(1);
+  const result = await db
+    .select()
+    .from(melbournSuburbs)
+    .where(eq(melbournSuburbs.suburb, suburb))
+    .limit(1);
   return result.length > 0 ? result[0] : undefined;
 }

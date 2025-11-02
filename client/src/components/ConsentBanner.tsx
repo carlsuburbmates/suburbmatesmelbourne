@@ -24,7 +24,7 @@ export function ConsentBanner() {
       setDismissed(true);
       localStorage.setItem("consent_accepted", "true");
     },
-    onError: (error) => {
+    onError: error => {
       console.error("Failed to log consent:", error);
     },
   });
@@ -57,13 +57,13 @@ export function ConsentBanner() {
           <div className="flex-1">
             <h3 className="font-semibold text-lg mb-2">Privacy & Consent</h3>
             <p className="text-sm text-muted-foreground">
-              We use cookies and collect data to improve your experience. By continuing to use
-              Suburbmates, you agree to our{" "}
+              We use cookies and collect data to improve your experience. By
+              continuing to use Suburbmates, you agree to our{" "}
               <a href="/privacy" className="underline hover:text-primary">
                 Privacy Policy
               </a>{" "}
-              and consent to data processing. Your consent is logged with cryptographic integrity
-              for compliance.
+              and consent to data processing. Your consent is logged with
+              cryptographic integrity for compliance.
             </p>
           </div>
           <div className="flex gap-2 shrink-0">

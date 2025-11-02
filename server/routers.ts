@@ -10,7 +10,7 @@ import crypto from "crypto";
 
 export const appRouter = router({
   system: systemRouter,
-  
+
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {
@@ -142,10 +142,10 @@ export const appRouter = router({
         try {
           // Import ABN service dynamically to avoid startup issues
           const { getABNDetails } = await import("./lib/abr");
-          
+
           // Lookup ABN details
           const abnDetails = await getABNDetails(input.abn);
-          
+
           if (!abnDetails) {
             throw new TRPCError({
               code: "BAD_REQUEST",
@@ -174,7 +174,7 @@ export const appRouter = router({
           };
         } catch (error) {
           console.error("ABN verification failed:", error);
-          
+
           // Update status to rejected
           await db.updateBusinessABN(input.businessId, {
             abn: input.abn,
@@ -187,7 +187,10 @@ export const appRouter = router({
 
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
-            message: error instanceof Error ? error.message : "ABN verification failed",
+            message:
+              error instanceof Error
+                ? error.message
+                : "ABN verification failed",
           });
         }
       }),
@@ -211,7 +214,11 @@ export const appRouter = router({
       .input(
         z.object({
           businessId: z.number(),
-          agreementType: z.enum(["terms_of_service", "privacy_policy", "vendor_agreement"]),
+          agreementType: z.enum([
+            "terms_of_service",
+            "privacy_policy",
+            "vendor_agreement",
+          ]),
           version: z.string(),
         })
       )
@@ -221,7 +228,8 @@ export const appRouter = router({
         if (!business || business.ownerId !== ctx.user.id) {
           throw new TRPCError({
             code: "FORBIDDEN",
-            message: "You do not have permission to accept agreements for this business",
+            message:
+              "You do not have permission to accept agreements for this business",
           });
         }
 
@@ -253,11 +261,18 @@ export const appRouter = router({
       .input(
         z.object({
           businessId: z.number(),
-          agreementType: z.enum(["terms_of_service", "privacy_policy", "vendor_agreement"]),
+          agreementType: z.enum([
+            "terms_of_service",
+            "privacy_policy",
+            "vendor_agreement",
+          ]),
         })
       )
       .query(async ({ input }) => {
-        return await db.getLatestAgreement(input.businessId, input.agreementType);
+        return await db.getLatestAgreement(
+          input.businessId,
+          input.agreementType
+        );
       }),
   }),
 
@@ -270,7 +285,12 @@ export const appRouter = router({
     set: protectedProcedure
       .input(
         z.object({
-          consentType: z.enum(["marketing_emails", "sms_notifications", "analytics", "third_party_sharing"]),
+          consentType: z.enum([
+            "marketing_emails",
+            "sms_notifications",
+            "analytics",
+            "third_party_sharing",
+          ]),
           granted: z.boolean(),
           version: z.string(),
           expiresAt: z.date().optional(),
@@ -299,13 +319,20 @@ export const appRouter = router({
     get: protectedProcedure
       .input(
         z.object({
-          consentType: z.enum(["marketing_emails", "sms_notifications", "analytics", "third_party_sharing"]),
+          consentType: z.enum([
+            "marketing_emails",
+            "sms_notifications",
+            "analytics",
+            "third_party_sharing",
+          ]),
         })
       )
       .query(async ({ ctx, input }) => {
         const allActions = await db.getUserConsentActions(ctx.user.id);
         // Filter actions that contain the consent type in the action string
-        const filteredActions = allActions.filter((consent) => consent.action.includes(input.consentType));
+        const filteredActions = allActions.filter(consent =>
+          consent.action.includes(input.consentType)
+        );
         return filteredActions;
       }),
 
