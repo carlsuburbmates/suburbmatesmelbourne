@@ -27,7 +27,9 @@ export default function BusinessProfile() {
             <Card className="p-8 mb-8">
               <div className="flex items-start justify-between mb-6">
                 <div>
-                  <h1 className="text-4xl font-bold mb-2">{business.businessName}</h1>
+                  <h1 className="text-4xl font-bold mb-2">
+                    {business.businessName}
+                  </h1>
                   {business.abnVerifiedStatus === "verified" && (
                     <div className="inline-flex items-center gap-2 text-sm bg-primary/10 text-primary px-3 py-1 rounded">
                       ✓ ABN Verified
@@ -37,7 +39,9 @@ export default function BusinessProfile() {
               </div>
 
               {business.about && (
-                <p className="text-lg text-muted-foreground mb-6">{business.about}</p>
+                <p className="text-lg text-muted-foreground mb-6">
+                  {business.about}
+                </p>
               )}
 
               {/* Contact Information */}
@@ -45,19 +49,31 @@ export default function BusinessProfile() {
                 {business.address && (
                   <div className="flex items-center gap-3">
                     <MapPin className="h-5 w-5 text-primary" />
-                    <span>{business.address}, {business.suburb}</span>
+                    <span>
+                      {business.address}, {business.suburb}
+                    </span>
                   </div>
                 )}
                 {business.phone && (
                   <div className="flex items-center gap-3">
                     <Phone className="h-5 w-5 text-primary" />
-                    <a href={`tel:${business.phone}`} className="hover:underline">{business.phone}</a>
+                    <a
+                      href={`tel:${business.phone}`}
+                      className="hover:underline"
+                    >
+                      {business.phone}
+                    </a>
                   </div>
                 )}
                 {business.website && (
                   <div className="flex items-center gap-3">
                     <Globe className="h-5 w-5 text-primary" />
-                    <a href={business.website} target="_blank" rel="noopener noreferrer" className="hover:underline">
+                    <a
+                      href={business.website}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:underline"
+                    >
                       {business.website}
                     </a>
                   </div>
@@ -85,7 +101,9 @@ export default function BusinessProfile() {
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">ABN Status</p>
-                  <p className="font-semibold capitalize">{business.abnVerifiedStatus}</p>
+                  <p className="font-semibold capitalize">
+                    {business.abnVerifiedStatus}
+                  </p>
                 </div>
                 <Button className="w-full">Contact Business</Button>
               </div>

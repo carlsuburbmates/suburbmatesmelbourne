@@ -17,7 +17,7 @@ export default function Auth() {
       toast.success("Verification email sent!");
       setStep("token");
     },
-    onError: (error) => {
+    onError: error => {
       toast.error(error.message);
     },
   });
@@ -27,7 +27,7 @@ export default function Auth() {
       toast.success("Logged in successfully!");
       setLocation("/dashboard");
     },
-    onError: (error) => {
+    onError: error => {
       toast.error(error.message);
     },
   });
@@ -68,7 +68,7 @@ export default function Auth() {
                 type="email"
                 placeholder="you@example.com"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={e => setEmail(e.target.value)}
                 disabled={requestTokenMutation.isPending}
               />
             </div>
@@ -77,18 +77,22 @@ export default function Auth() {
               className="w-full"
               disabled={requestTokenMutation.isPending}
             >
-              {requestTokenMutation.isPending ? "Sending..." : "Send Verification Link"}
+              {requestTokenMutation.isPending
+                ? "Sending..."
+                : "Send Verification Link"}
             </Button>
           </form>
         ) : (
           <form onSubmit={handleVerifyToken} className="space-y-4">
             <div>
-              <label className="text-sm font-medium mb-2 block">Verification Token</label>
+              <label className="text-sm font-medium mb-2 block">
+                Verification Token
+              </label>
               <Input
                 type="text"
                 placeholder="Paste the token from your email"
                 value={token}
-                onChange={(e) => setToken(e.target.value)}
+                onChange={e => setToken(e.target.value)}
                 disabled={verifyTokenMutation.isPending}
               />
             </div>
@@ -97,7 +101,9 @@ export default function Auth() {
               className="w-full"
               disabled={verifyTokenMutation.isPending}
             >
-              {verifyTokenMutation.isPending ? "Verifying..." : "Verify & Sign In"}
+              {verifyTokenMutation.isPending
+                ? "Verifying..."
+                : "Verify & Sign In"}
             </Button>
             <Button
               type="button"

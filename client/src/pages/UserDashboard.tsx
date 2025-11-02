@@ -16,7 +16,9 @@ export default function UserDashboard() {
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-4xl font-bold">Dashboard</h1>
-            <p className="text-muted-foreground">Welcome, {user?.name || user?.email}</p>
+            <p className="text-muted-foreground">
+              Welcome, {user?.name || user?.email}
+            </p>
           </div>
           <Button
             variant="outline"
@@ -35,21 +37,26 @@ export default function UserDashboard() {
             <h2 className="text-2xl font-bold mb-4">My Businesses</h2>
             {myBusinesses && myBusinesses.length > 0 ? (
               <div className="space-y-2">
-                {myBusinesses.map((business) => (
+                {myBusinesses.map(business => (
                   <div
                     key={business.id}
                     className="p-4 border border-border rounded-lg hover:bg-secondary/50 cursor-pointer transition"
                     onClick={() => setLocation(`/business/${business.id}`)}
                   >
                     <h3 className="font-semibold">{business.businessName}</h3>
-                    <p className="text-sm text-muted-foreground">{business.suburb}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {business.suburb}
+                    </p>
                   </div>
                 ))}
               </div>
             ) : (
               <p className="text-muted-foreground mb-4">No businesses yet</p>
             )}
-            <Button className="w-full mt-4" onClick={() => setLocation("/vendor/dashboard")}>
+            <Button
+              className="w-full mt-4"
+              onClick={() => setLocation("/vendor/dashboard")}
+            >
               Create Business
             </Button>
           </Card>

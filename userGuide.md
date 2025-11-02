@@ -62,4 +62,3 @@ Access the **Management UI** (right panel) to control your platform:
 Talk to Manus AI anytime to request changes or add features. The platform is designed to scale with your needs—from basic directory functionality to full marketplace with payments and reviews.
 
 Ready to grow your local community marketplace? Start by creating your first business listing and inviting local vendors to join Suburbmates today!
-

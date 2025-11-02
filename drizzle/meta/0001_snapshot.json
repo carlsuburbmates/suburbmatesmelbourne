@@ -68,9 +68,7 @@
       "indexes": {
         "businessIdIdx": {
           "name": "businessIdIdx",
-          "columns": [
-            "businessId"
-          ],
+          "columns": ["businessId"],
           "isUnique": false
         }
       },
@@ -79,12 +77,8 @@
           "name": "agreements_businessId_businesses_id_fk",
           "tableFrom": "agreements",
           "tableTo": "businesses",
-          "columnsFrom": [
-            "businessId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["businessId"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -92,9 +86,7 @@
       "compositePrimaryKeys": {
         "agreements_id": {
           "name": "agreements_id",
-          "columns": [
-            "id"
-          ]
+          "columns": ["id"]
         }
       },
       "uniqueConstraints": {},
@@ -224,23 +216,17 @@
       "indexes": {
         "ownerIdIdx": {
           "name": "ownerIdIdx",
-          "columns": [
-            "ownerId"
-          ],
+          "columns": ["ownerId"],
           "isUnique": false
         },
         "abnIdx": {
           "name": "abnIdx",
-          "columns": [
-            "abn"
-          ],
+          "columns": ["abn"],
           "isUnique": false
         },
         "suburbIdx": {
           "name": "suburbIdx",
-          "columns": [
-            "suburb"
-          ],
+          "columns": ["suburb"],
           "isUnique": false
         }
       },
@@ -249,12 +235,8 @@
           "name": "businesses_ownerId_users_id_fk",
           "tableFrom": "businesses",
           "tableTo": "users",
-          "columnsFrom": [
-            "ownerId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["ownerId"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -262,17 +244,13 @@
       "compositePrimaryKeys": {
         "businesses_id": {
           "name": "businesses_id",
-          "columns": [
-            "id"
-          ]
+          "columns": ["id"]
         }
       },
       "uniqueConstraints": {
         "businesses_abn_unique": {
           "name": "businesses_abn_unique",
-          "columns": [
-            "abn"
-          ]
+          "columns": ["abn"]
         }
       },
       "checkConstraint": {}
@@ -358,9 +336,7 @@
       "indexes": {
         "userIdIdx": {
           "name": "userIdIdx",
-          "columns": [
-            "userId"
-          ],
+          "columns": ["userId"],
           "isUnique": false
         }
       },
@@ -369,12 +345,8 @@
           "name": "consents_userId_users_id_fk",
           "tableFrom": "consents",
           "tableTo": "users",
-          "columnsFrom": [
-            "userId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["userId"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -382,9 +354,7 @@
       "compositePrimaryKeys": {
         "consents_id": {
           "name": "consents_id",
-          "columns": [
-            "id"
-          ]
+          "columns": ["id"]
         }
       },
       "uniqueConstraints": {},
@@ -440,16 +410,12 @@
       "indexes": {
         "emailIdx": {
           "name": "emailIdx",
-          "columns": [
-            "email"
-          ],
+          "columns": ["email"],
           "isUnique": false
         },
         "tokenIdx": {
           "name": "tokenIdx",
-          "columns": [
-            "token"
-          ],
+          "columns": ["token"],
           "isUnique": false
         }
       },
@@ -457,17 +423,13 @@
       "compositePrimaryKeys": {
         "email_tokens_id": {
           "name": "email_tokens_id",
-          "columns": [
-            "id"
-          ]
+          "columns": ["id"]
         }
       },
       "uniqueConstraints": {
         "email_tokens_token_unique": {
           "name": "email_tokens_token_unique",
-          "columns": [
-            "token"
-          ]
+          "columns": ["token"]
         }
       },
       "checkConstraint": {}
@@ -524,17 +486,13 @@
       "compositePrimaryKeys": {
         "melbourne_suburbs_id": {
           "name": "melbourne_suburbs_id",
-          "columns": [
-            "id"
-          ]
+          "columns": ["id"]
         }
       },
       "uniqueConstraints": {
         "melbourne_suburbs_suburb_unique": {
           "name": "melbourne_suburbs_suburb_unique",
-          "columns": [
-            "suburb"
-          ]
+          "columns": ["suburb"]
         }
       },
       "checkConstraint": {}
@@ -616,17 +574,13 @@
       "compositePrimaryKeys": {
         "users_id": {
           "name": "users_id",
-          "columns": [
-            "id"
-          ]
+          "columns": ["id"]
         }
       },
       "uniqueConstraints": {
         "users_openId_unique": {
           "name": "users_openId_unique",
-          "columns": [
-            "openId"
-          ]
+          "columns": ["openId"]
         }
       },
       "checkConstraint": {}

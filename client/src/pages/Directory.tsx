@@ -50,7 +50,7 @@ export default function Directory() {
                   <Input
                     placeholder="Search businesses..."
                     value={businessName}
-                    onChange={(e) => setBusinessName(e.target.value)}
+                    onChange={e => setBusinessName(e.target.value)}
                     className="w-full"
                   />
                 </div>
@@ -62,11 +62,11 @@ export default function Directory() {
                   </label>
                   <select
                     value={suburb}
-                    onChange={(e) => setSuburb(e.target.value)}
+                    onChange={e => setSuburb(e.target.value)}
                     className="w-full px-3 py-2 border border-border rounded-md bg-background text-foreground"
                   >
                     <option value="">All Suburbs</option>
-                    {suburbs?.map((s) => (
+                    {suburbs?.map(s => (
                       <option key={s.id} value={s.suburb}>
                         {s.suburb} ({s.postcode})
                       </option>
@@ -102,7 +102,7 @@ export default function Directory() {
               </div>
             ) : businesses && businesses.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {businesses.map((business) => (
+                {businesses.map(business => (
                   <Card
                     key={business.id}
                     className="overflow-hidden hover-lift cursor-pointer"
@@ -122,7 +122,8 @@ export default function Directory() {
                       <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
                         <MapPin className="h-4 w-4" />
                         <span>
-                          {business.suburb} {business.address && `• ${business.address}`}
+                          {business.suburb}{" "}
+                          {business.address && `• ${business.address}`}
                         </span>
                       </div>
 
@@ -144,7 +145,7 @@ export default function Directory() {
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={(e) => {
+                          onClick={e => {
                             e.stopPropagation();
                             setLocation(`/business/${business.id}`);
                           }}
@@ -159,7 +160,9 @@ export default function Directory() {
             ) : (
               <Card className="p-12 text-center">
                 <Search className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2">No businesses found</h3>
+                <h3 className="text-lg font-semibold mb-2">
+                  No businesses found
+                </h3>
                 <p className="text-muted-foreground">
                   Try adjusting your filters or search terms
                 </p>

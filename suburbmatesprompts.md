@@ -8,9 +8,9 @@ Keep **`suburbmates`** as the base branch (`main`).
 Create separate **feature branches** for each enhancement; this lets Copilot work incrementally and keeps merges clean.
 Each feature group below lists:
 
-* Target branch name
-* Files to create or modify
-* Tasks and Copilot prompt you can paste into VS Code’s chat.
+- Target branch name
+- Files to create or modify
+- Tasks and Copilot prompt you can paste into VS Code’s chat.
 
 ---
 
@@ -226,7 +226,7 @@ One-click deploy to Vercel + Render.
 
 ---
 
-## ✅  Final Merge Order
+## ✅ Final Merge Order
 
 1. `feature/abn-verification`
 2. `feature/ai-profile-builder`
@@ -247,9 +247,9 @@ Each section builds one enhancement branch from the merge plan, in the right seq
 
 ---
 
-## 🧾 COPILOT PROMPT BATCH FILE — *Suburbmates Enhancement Refactor*
+## 🧾 COPILOT PROMPT BATCH FILE — _Suburbmates Enhancement Refactor_
 
-*(copy one block at a time into Copilot Chat with “Context: Entire Workspace” enabled)*
+_(copy one block at a time into Copilot Chat with “Context: Entire Workspace” enabled)_
 
 ---
 
@@ -423,5 +423,3 @@ git push
 ```
 
 ---
-
-
