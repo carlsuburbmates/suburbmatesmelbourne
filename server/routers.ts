@@ -5,6 +5,7 @@ import { publicProcedure, router, protectedProcedure } from "./_core/trpc";
 import { z } from "zod";
 import * as db from "./db";
 import { TRPCError } from "@trpc/server";
+import { logConsent } from "./_core/dataApi";
 import crypto from "crypto";
 
 export const appRouter = router({
@@ -263,7 +264,8 @@ export const appRouter = router({
   // ============ CONSENT ROUTER ============
   consent: router({
     /**
-     * Create or update user consent
+     * Log a consent action (new immutable hash system)
+     * Deprecated: Use consent.log instead for audit-ready consent tracking
      */
     set: protectedProcedure
       .input(
@@ -275,28 +277,24 @@ export const appRouter = router({
         })
       )
       .mutation(async ({ ctx, input }) => {
-        const consent = await db.createConsent({
-          userId: ctx.user.id,
-          consentType: input.consentType,
-          granted: input.granted,
-          version: input.version,
-          ipAddress: ctx.req.ip,
-          userAgent: ctx.req.headers["user-agent"],
-          expiresAt: input.expiresAt,
-        });
+        // Map old consent format to new action-based system
+        const action = `${input.consentType}_${input.granted ? "granted" : "revoked"}_v${input.version}`;
+        const result = await logConsent(ctx.user.id, action);
 
-        return { success: true, consentId: consent[0].insertId };
+        return { success: true, consentId: result.id };
       }),
 
     /**
-     * Get all consents for the current user
+     * Get all consents for current user (new immutable hash system)
      */
     getAll: protectedProcedure.query(async ({ ctx }) => {
-      return await db.getConsentsByUserId(ctx.user.id);
+      const consents = await db.getConsentsByUserId(ctx.user.id);
+      return consents;
     }),
 
     /**
-     * Get a specific consent type for the current user
+     * Get actions for current user containing a specific consent type (new immutable hash system)
+     * Returns all logged actions that include the consentType string
      */
     get: protectedProcedure
       .input(
@@ -305,7 +303,29 @@ export const appRouter = router({
         })
       )
       .query(async ({ ctx, input }) => {
-        return await db.getUserConsent(ctx.user.id, input.consentType);
+        const allActions = await db.getUserConsentActions(ctx.user.id);
+        // Filter actions that contain the consent type in the action string
+        const filteredActions = allActions.filter((consent) => consent.action.includes(input.consentType));
+        return filteredActions;
+      }),
+
+    /**
+     * Log an immutable consent action with cryptographic hash
+     * This creates an audit-ready record for compliance tracking
+     */
+    log: protectedProcedure
+      .input(
+        z.object({
+          action: z.string().min(1).max(255),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        const result = await logConsent(ctx.user.id, input.action);
+        return {
+          success: true,
+          consentId: result.id,
+          immutableHash: result.immutableHash,
+        };
       }),
   }),
 
