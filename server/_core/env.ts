@@ -18,4 +18,15 @@ export const ENV = {
   cookieSecret: process.env.JWT_SECRET ?? "",
   ownerOpenId: process.env.OWNER_OPEN_ID ?? "",
   isProduction: process.env.NODE_ENV === "production",
+
+  // DEPRECATED: Legacy Manus properties (stubbed for backward compatibility)
+  // These should not be used in new code - they're only here to prevent TypeScript errors
+  /** @deprecated Legacy Manus Forge API - no longer in use */
+  forgeApiUrl: process.env.FORGE_API_URL ?? "",
+  /** @deprecated Legacy Manus Forge API - no longer in use */
+  forgeApiKey: process.env.FORGE_API_KEY ?? "",
+  /** @deprecated Legacy Manus OAuth - replaced by Supabase Auth */
+  oAuthServerUrl: process.env.OAUTH_SERVER_URL ?? "",
+  /** @deprecated Legacy Manus App ID - no longer in use */
+  appId: process.env.APP_ID ?? "",
 };
