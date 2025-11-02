@@ -1,5 +1,5 @@
-import posthog from 'posthog-js';
-import { useEffect } from 'react';
+import posthog from "posthog-js";
+import { useEffect } from "react";
 
 /**
  * PostHog analytics utilities for tracking user behavior
@@ -10,8 +10,8 @@ import { useEffect } from 'react';
  */
 export const usePostHogPageView = (pageName: string) => {
   useEffect(() => {
-    if (typeof window !== 'undefined' && posthog.__loaded) {
-      posthog.capture('$pageview', {
+    if (typeof window !== "undefined" && posthog.__loaded) {
+      posthog.capture("$pageview", {
         $current_url: window.location.href,
         page_name: pageName,
         $referrer: document.referrer,
@@ -23,8 +23,11 @@ export const usePostHogPageView = (pageName: string) => {
 /**
  * Track button clicks and user interactions
  */
-export const trackEvent = (eventName: string, properties?: Record<string, any>) => {
-  if (typeof window !== 'undefined' && posthog.__loaded) {
+export const trackEvent = (
+  eventName: string,
+  properties?: Record<string, any>
+) => {
+  if (typeof window !== "undefined" && posthog.__loaded) {
     posthog.capture(eventName, {
       ...properties,
       timestamp: new Date().toISOString(),
@@ -36,37 +39,43 @@ export const trackEvent = (eventName: string, properties?: Record<string, any>) 
 /**
  * Track business-related actions
  */
-export const trackBusinessAction = (action: string, businessData?: {
-  businessId?: number;
-  businessName?: string;
-  suburb?: string;
-}) => {
+export const trackBusinessAction = (
+  action: string,
+  businessData?: {
+    businessId?: number;
+    businessName?: string;
+    suburb?: string;
+  }
+) => {
   trackEvent(`business_${action}`, {
     business_id: businessData?.businessId,
     business_name: businessData?.businessName,
     suburb: businessData?.suburb,
-    source: 'web_app',
+    source: "web_app",
   });
 };
 
 /**
  * Track user authentication events
  */
-export const trackAuthEvent = (event: 'login' | 'logout' | 'signup') => {
+export const trackAuthEvent = (event: "login" | "logout" | "signup") => {
   trackEvent(`user_${event}`, {
-    auth_provider: 'supabase',
-    source: 'web_app',
+    auth_provider: "supabase",
+    source: "web_app",
   });
 };
 
 /**
  * Track search and discovery actions
  */
-export const trackSearchEvent = (query?: string, filters?: Record<string, any>) => {
-  trackEvent('search_performed', {
+export const trackSearchEvent = (
+  query?: string,
+  filters?: Record<string, any>
+) => {
+  trackEvent("search_performed", {
     search_query: query,
     filters: filters,
-    source: 'directory_page',
+    source: "directory_page",
   });
 };
 
@@ -77,15 +86,18 @@ export const trackAIEvent = (feature: string, data?: Record<string, any>) => {
   trackEvent(`ai_${feature}`, {
     ...data,
     ai_feature: feature,
-    source: 'web_app',
+    source: "web_app",
   });
 };
 
 /**
  * Identify user for personalized analytics
  */
-export const identifyUser = (userId: string, properties?: Record<string, any>) => {
-  if (typeof window !== 'undefined' && posthog.__loaded) {
+export const identifyUser = (
+  userId: string,
+  properties?: Record<string, any>
+) => {
+  if (typeof window !== "undefined" && posthog.__loaded) {
     posthog.identify(userId, properties);
   }
 };
@@ -94,7 +106,7 @@ export const identifyUser = (userId: string, properties?: Record<string, any>) =
  * Track errors and exceptions
  */
 export const trackError = (error: Error, context?: Record<string, any>) => {
-  trackEvent('error_occurred', {
+  trackEvent("error_occurred", {
     error_message: error.message,
     error_stack: error.stack,
     error_context: context,

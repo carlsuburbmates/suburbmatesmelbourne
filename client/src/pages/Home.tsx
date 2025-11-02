@@ -11,7 +11,7 @@ export default function Home() {
   const [, setLocation] = useLocation();
 
   // Track page view
-  usePostHogPageView('homepage');
+  usePostHogPageView("homepage");
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -19,14 +19,19 @@ export default function Home() {
       <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-sm border-b border-border">
         <div className="container flex items-center justify-between py-4">
           <div className="flex items-center gap-2">
-            {APP_LOGO && <img src={APP_LOGO} alt={APP_TITLE} className="h-8 w-8" />}
+            {APP_LOGO && (
+              <img src={APP_LOGO} alt={APP_TITLE} className="h-8 w-8" />
+            )}
             <span className="text-xl font-bold text-primary">{APP_TITLE}</span>
           </div>
           <div className="flex items-center gap-4">
             <Button
               variant="ghost"
               onClick={() => {
-                trackEvent('navigation_click', { destination: 'directory', source: 'homepage_nav' });
+                trackEvent("navigation_click", {
+                  destination: "directory",
+                  source: "homepage_nav",
+                });
                 setLocation("/directory");
               }}
             >
@@ -40,10 +45,7 @@ export default function Home() {
                 Dashboard
               </Button>
             ) : (
-              <Button
-                variant="default"
-                onClick={() => setLocation("/auth")}
-              >
+              <Button variant="default" onClick={() => setLocation("/auth")}>
                 Sign In
               </Button>
             )}
@@ -61,7 +63,8 @@ export default function Home() {
                   Discover Your Local Business Community
                 </h1>
                 <p className="text-xl text-muted-foreground">
-                  Connect with verified businesses in your Melbourne suburb. Browse services, check reviews, and support local.
+                  Connect with verified businesses in your Melbourne suburb.
+                  Browse services, check reviews, and support local.
                 </p>
               </div>
 
@@ -89,7 +92,9 @@ export default function Home() {
             <div className="relative h-96 md:h-full min-h-96 bg-gradient-to-br from-primary/10 to-accent/10 rounded-2xl border border-border flex items-center justify-center">
               <div className="text-center">
                 <MapPin className="h-24 w-24 text-primary/30 mx-auto mb-4" />
-                <p className="text-muted-foreground">Melbourne Local Marketplace</p>
+                <p className="text-muted-foreground">
+                  Melbourne Local Marketplace
+                </p>
               </div>
             </div>
           </div>
@@ -102,7 +107,8 @@ export default function Home() {
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold mb-4">Why Choose Suburbmates?</h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              A hyper-local marketplace designed for Melbourne communities with modern technology and genuine connections.
+              A hyper-local marketplace designed for Melbourne communities with
+              modern technology and genuine connections.
             </p>
           </div>
 
@@ -111,7 +117,8 @@ export default function Home() {
               {
                 icon: MapPin,
                 title: "Hyper-Local",
-                description: "Find businesses in your suburb with precise geofencing",
+                description:
+                  "Find businesses in your suburb with precise geofencing",
               },
               {
                 icon: Shield,
@@ -126,13 +133,16 @@ export default function Home() {
               {
                 icon: Zap,
                 title: "Fast & Modern",
-                description: "Built with cutting-edge technology for smooth experience",
+                description:
+                  "Built with cutting-edge technology for smooth experience",
               },
             ].map((feature, idx) => (
               <Card key={idx} className="p-6 hover-lift">
                 <feature.icon className="h-12 w-12 text-primary mb-4" />
                 <h3 className="text-lg font-semibold mb-2">{feature.title}</h3>
-                <p className="text-muted-foreground text-sm">{feature.description}</p>
+                <p className="text-muted-foreground text-sm">
+                  {feature.description}
+                </p>
               </Card>
             ))}
           </div>
@@ -152,7 +162,9 @@ export default function Home() {
             <Button
               size="lg"
               variant="secondary"
-              onClick={() => setLocation(isAuthenticated ? "/dashboard" : "/auth")}
+              onClick={() =>
+                setLocation(isAuthenticated ? "/dashboard" : "/auth")
+              }
             >
               {isAuthenticated ? "Go to Dashboard" : "Sign Up Now"}
             </Button>
@@ -167,31 +179,68 @@ export default function Home() {
             <div>
               <h4 className="font-semibold mb-4">About</h4>
               <p className="text-sm text-muted-foreground">
-                Suburbmates connects Melbourne communities with verified local businesses.
+                Suburbmates connects Melbourne communities with verified local
+                businesses.
               </p>
             </div>
             <div>
               <h4 className="font-semibold mb-4">Browse</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><a href="#" className="hover:text-foreground transition">Directory</a></li>
-                <li><a href="#" className="hover:text-foreground transition">Categories</a></li>
-                <li><a href="#" className="hover:text-foreground transition">Suburbs</a></li>
+                <li>
+                  <a href="#" className="hover:text-foreground transition">
+                    Directory
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-foreground transition">
+                    Categories
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-foreground transition">
+                    Suburbs
+                  </a>
+                </li>
               </ul>
             </div>
             <div>
               <h4 className="font-semibold mb-4">For Business</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><a href="#" className="hover:text-foreground transition">List Your Business</a></li>
-                <li><a href="#" className="hover:text-foreground transition">Pricing</a></li>
-                <li><a href="#" className="hover:text-foreground transition">Features</a></li>
+                <li>
+                  <a href="#" className="hover:text-foreground transition">
+                    List Your Business
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-foreground transition">
+                    Pricing
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-foreground transition">
+                    Features
+                  </a>
+                </li>
               </ul>
             </div>
             <div>
               <h4 className="font-semibold mb-4">Legal</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><a href="#" className="hover:text-foreground transition">Privacy Policy</a></li>
-                <li><a href="#" className="hover:text-foreground transition">Terms of Service</a></li>
-                <li><a href="#" className="hover:text-foreground transition">Contact</a></li>
+                <li>
+                  <a href="#" className="hover:text-foreground transition">
+                    Privacy Policy
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-foreground transition">
+                    Terms of Service
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-foreground transition">
+                    Contact
+                  </a>
+                </li>
               </ul>
             </div>
           </div>

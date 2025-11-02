@@ -1,4 +1,15 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, boolean, decimal, index, foreignKey } from "drizzle-orm/mysql-core";
+import {
+  int,
+  mysqlEnum,
+  mysqlTable,
+  text,
+  timestamp,
+  varchar,
+  boolean,
+  decimal,
+  index,
+  foreignKey,
+} from "drizzle-orm/mysql-core";
 import { relations } from "drizzle-orm";
 
 /**
@@ -17,7 +28,15 @@ export const users = mysqlTable("users", {
   name: text("name"),
   email: varchar("email", { length: 320 }),
   loginMethod: varchar("loginMethod", { length: 64 }),
-  role: mysqlEnum("role", ["user", "admin", "buyer", "business_owner", "vendor"]).default("user").notNull(),
+  role: mysqlEnum("role", [
+    "user",
+    "admin",
+    "buyer",
+    "business_owner",
+    "vendor",
+  ])
+    .default("user")
+    .notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
@@ -51,7 +70,13 @@ export const businesses = mysqlTable(
     ownerId: int("ownerId").notNull(),
     businessName: varchar("businessName", { length: 255 }).notNull(),
     abn: varchar("abn", { length: 11 }).unique(),
-    abnVerifiedStatus: mysqlEnum("abnVerifiedStatus", ["pending", "verified", "rejected"]).default("pending").notNull(),
+    abnVerifiedStatus: mysqlEnum("abnVerifiedStatus", [
+      "pending",
+      "verified",
+      "rejected",
+    ])
+      .default("pending")
+      .notNull(),
     abnDetails: text("abnDetails"), // JSON string with ABN lookup details
     services: text("services"), // JSON array of service categories
     about: text("about"),
@@ -61,15 +86,20 @@ export const businesses = mysqlTable(
     website: varchar("website", { length: 500 }),
     openingHours: text("openingHours"), // JSON object with hours
     profileImage: varchar("profileImage", { length: 500 }),
-    status: mysqlEnum("status", ["active", "inactive", "suspended"]).default("active").notNull(),
+    status: mysqlEnum("status", ["active", "inactive", "suspended"])
+      .default("active")
+      .notNull(),
     createdAt: timestamp("createdAt").defaultNow().notNull(),
     updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   },
-  (table) => ({
+  table => ({
     ownerIdIdx: index("ownerIdIdx").on(table.ownerId),
     abnIdx: index("abnIdx").on(table.abn),
     suburbIdx: index("suburbIdx").on(table.suburb),
-    ownerFk: foreignKey({ columns: [table.ownerId], foreignColumns: [users.id] }),
+    ownerFk: foreignKey({
+      columns: [table.ownerId],
+      foreignColumns: [users.id],
+    }),
   })
 );
 
@@ -84,16 +114,23 @@ export const agreements = mysqlTable(
   {
     id: int("id").autoincrement().primaryKey(),
     businessId: int("businessId").notNull(),
-    agreementType: mysqlEnum("agreementType", ["terms_of_service", "privacy_policy", "vendor_agreement"]).notNull(),
+    agreementType: mysqlEnum("agreementType", [
+      "terms_of_service",
+      "privacy_policy",
+      "vendor_agreement",
+    ]).notNull(),
     version: varchar("version", { length: 20 }).notNull(), // e.g., "1.0", "2.1"
     acceptedAt: timestamp("acceptedAt").notNull(),
     ipAddress: varchar("ipAddress", { length: 45 }),
     userAgent: text("userAgent"),
     createdAt: timestamp("createdAt").defaultNow().notNull(),
   },
-  (table) => ({
+  table => ({
     businessIdIdx: index("businessIdIdx").on(table.businessId),
-    businessFk: foreignKey({ columns: [table.businessId], foreignColumns: [businesses.id] }),
+    businessFk: foreignKey({
+      columns: [table.businessId],
+      foreignColumns: [businesses.id],
+    }),
   })
 );
 
@@ -108,7 +145,12 @@ export const consents = mysqlTable(
   {
     id: int("id").autoincrement().primaryKey(),
     userId: int("userId").notNull(),
-    consentType: mysqlEnum("consentType", ["marketing_emails", "sms_notifications", "analytics", "third_party_sharing"]).notNull(),
+    consentType: mysqlEnum("consentType", [
+      "marketing_emails",
+      "sms_notifications",
+      "analytics",
+      "third_party_sharing",
+    ]).notNull(),
     granted: boolean("granted").default(false).notNull(),
     version: varchar("version", { length: 20 }).notNull(),
     ipAddress: varchar("ipAddress", { length: 45 }),
@@ -117,7 +159,7 @@ export const consents = mysqlTable(
     createdAt: timestamp("createdAt").defaultNow().notNull(),
     updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   },
-  (table) => ({
+  table => ({
     userIdIdx: index("userIdIdx").on(table.userId),
     userFk: foreignKey({ columns: [table.userId], foreignColumns: [users.id] }),
   })
@@ -139,7 +181,7 @@ export const emailTokens = mysqlTable(
     usedAt: timestamp("usedAt"),
     createdAt: timestamp("createdAt").defaultNow().notNull(),
   },
-  (table) => ({
+  table => ({
     emailIdx: index("emailIdx").on(table.email),
     tokenIdx: index("tokenIdx").on(table.token),
   })
@@ -162,7 +204,10 @@ export const businessesRelations = relations(businesses, ({ one, many }) => ({
 }));
 
 export const agreementsRelations = relations(agreements, ({ one }) => ({
-  business: one(businesses, { fields: [agreements.businessId], references: [businesses.id] }),
+  business: one(businesses, {
+    fields: [agreements.businessId],
+    references: [businesses.id],
+  }),
 }));
 
 export const consentsRelations = relations(consents, ({ one }) => ({

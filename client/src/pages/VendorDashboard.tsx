@@ -6,13 +6,18 @@ import { useState } from "react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { Sparkles } from "lucide-react";
-import { usePostHogPageView, trackBusinessAction, trackAIEvent, trackEvent } from "@/lib/analytics";
+import {
+  usePostHogPageView,
+  trackBusinessAction,
+  trackAIEvent,
+  trackEvent,
+} from "@/lib/analytics";
 
 export default function VendorDashboard() {
   const { user } = useAuth();
 
   // Track page view
-  usePostHogPageView('vendor_dashboard');
+  usePostHogPageView("vendor_dashboard");
   const [formData, setFormData] = useState({
     businessName: "",
     abn: "",
@@ -23,12 +28,12 @@ export default function VendorDashboard() {
   });
 
   const createBusinessMutation = trpc.business.create.useMutation({
-    onSuccess: (data) => {
+    onSuccess: data => {
       toast.success("Business created successfully!");
-      trackBusinessAction('created', {
+      trackBusinessAction("created", {
         businessId: data.businessId,
         businessName: formData.businessName,
-        suburb: formData.suburb
+        suburb: formData.suburb,
       });
       setFormData({
         businessName: "",
@@ -39,35 +44,36 @@ export default function VendorDashboard() {
         about: "",
       });
     },
-    onError: (error) => {
+    onError: error => {
       toast.error(error.message);
-      trackEvent('business_creation_failed', { error: error.message });
+      trackEvent("business_creation_failed", { error: error.message });
     },
   });
 
-  const generateDescriptionMutation = trpc.llm.generateBusinessDescription.useMutation({
-    onSuccess: (response) => {
-      if (response.success) {
-        setFormData({ ...formData, about: response.description });
-        toast.success("Description generated successfully!");
-        trackAIEvent('description_generated', {
-          business_name: formData.businessName,
-          category: 'General Business',
-          success: true
+  const generateDescriptionMutation =
+    trpc.llm.generateBusinessDescription.useMutation({
+      onSuccess: response => {
+        if (response.success) {
+          setFormData({ ...formData, about: response.description });
+          toast.success("Description generated successfully!");
+          trackAIEvent("description_generated", {
+            business_name: formData.businessName,
+            category: "General Business",
+            success: true,
+          });
+        } else {
+          toast.error("Failed to generate description");
+          trackAIEvent("description_generated", { success: false });
+        }
+      },
+      onError: error => {
+        toast.error(error.message || "Failed to generate description");
+        trackAIEvent("description_generated", {
+          success: false,
+          error: error.message,
         });
-      } else {
-        toast.error("Failed to generate description");
-        trackAIEvent('description_generated', { success: false });
-      }
-    },
-    onError: (error) => {
-      toast.error(error.message || "Failed to generate description");
-      trackAIEvent('description_generated', { 
-        success: false, 
-        error: error.message 
-      });
-    },
-  });
+      },
+    });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -79,17 +85,17 @@ export default function VendorDashboard() {
       toast.error("Please enter a business name first");
       return;
     }
-    
+
     // Track AI button click
-    trackAIEvent('description_button_clicked', {
-      business_name: formData.businessName
+    trackAIEvent("description_button_clicked", {
+      business_name: formData.businessName,
     });
-    
+
     // For category, we'll use a simple classification based on business name
     // or default to "General Business" - this could be enhanced with a category selector
     generateDescriptionMutation.mutate({
       name: formData.businessName,
-      category: "General Business" // Could be enhanced to detect or let user select category
+      category: "General Business", // Could be enhanced to detect or let user select category
     });
   };
 
@@ -101,23 +107,29 @@ export default function VendorDashboard() {
         <Card className="max-w-2xl p-8">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label className="text-sm font-medium mb-2 block">Business Name *</label>
+              <label className="text-sm font-medium mb-2 block">
+                Business Name *
+              </label>
               <Input
                 required
                 placeholder="Your business name"
                 value={formData.businessName}
-                onChange={(e) =>
+                onChange={e =>
                   setFormData({ ...formData, businessName: e.target.value })
                 }
               />
             </div>
 
             <div>
-              <label className="text-sm font-medium mb-2 block">ABN (11 digits)</label>
+              <label className="text-sm font-medium mb-2 block">
+                ABN (11 digits)
+              </label>
               <Input
                 placeholder="12345678901"
                 value={formData.abn}
-                onChange={(e) => setFormData({ ...formData, abn: e.target.value })}
+                onChange={e =>
+                  setFormData({ ...formData, abn: e.target.value })
+                }
               />
             </div>
 
@@ -126,7 +138,9 @@ export default function VendorDashboard() {
               <Input
                 placeholder="e.g., Melbourne, Fitzroy"
                 value={formData.suburb}
-                onChange={(e) => setFormData({ ...formData, suburb: e.target.value })}
+                onChange={e =>
+                  setFormData({ ...formData, suburb: e.target.value })
+                }
               />
             </div>
 
@@ -136,7 +150,9 @@ export default function VendorDashboard() {
                 type="tel"
                 placeholder="(03) 1234 5678"
                 value={formData.phone}
-                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                onChange={e =>
+                  setFormData({ ...formData, phone: e.target.value })
+                }
               />
             </div>
 
@@ -146,7 +162,9 @@ export default function VendorDashboard() {
                 type="url"
                 placeholder="https://example.com"
                 value={formData.website}
-                onChange={(e) => setFormData({ ...formData, website: e.target.value })}
+                onChange={e =>
+                  setFormData({ ...formData, website: e.target.value })
+                }
               />
             </div>
 
@@ -158,7 +176,10 @@ export default function VendorDashboard() {
                   variant="outline"
                   size="sm"
                   onClick={handleGenerateDescription}
-                  disabled={generateDescriptionMutation.isPending || !formData.businessName.trim()}
+                  disabled={
+                    generateDescriptionMutation.isPending ||
+                    !formData.businessName.trim()
+                  }
                   className="text-xs"
                 >
                   {generateDescriptionMutation.isPending ? (
@@ -174,7 +195,9 @@ export default function VendorDashboard() {
               <textarea
                 placeholder="Tell us about your business..."
                 value={formData.about}
-                onChange={(e) => setFormData({ ...formData, about: e.target.value })}
+                onChange={e =>
+                  setFormData({ ...formData, about: e.target.value })
+                }
                 className="w-full px-3 py-2 border border-border rounded-md bg-background text-foreground"
                 rows={4}
               />
@@ -185,7 +208,9 @@ export default function VendorDashboard() {
               className="w-full"
               disabled={createBusinessMutation.isPending}
             >
-              {createBusinessMutation.isPending ? "Creating..." : "Create Business"}
+              {createBusinessMutation.isPending
+                ? "Creating..."
+                : "Create Business"}
             </Button>
           </form>
         </Card>

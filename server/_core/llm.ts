@@ -338,9 +338,12 @@ export async function invokeLLM(params: InvokeParams): Promise<InvokeResult> {
  * @param category Business category or services
  * @returns Generated description
  */
-export async function generateBusinessDescription(name: string, category?: string): Promise<string> {
-  const categoryText = category ? ` specializing in ${category}` : '';
-  
+export async function generateBusinessDescription(
+  name: string,
+  category?: string
+): Promise<string> {
+  const categoryText = category ? ` specializing in ${category}` : "";
+
   const prompt = `Generate a professional and engaging business description for "${name}"${categoryText}. 
 
 The description should be:
@@ -358,19 +361,20 @@ Do not include contact information, hours, or location details.`;
       messages: [
         {
           role: "system",
-          content: "You are a professional copywriter specializing in local business descriptions for Melbourne-based companies. Write compelling, unique descriptions that help businesses stand out in local directories."
+          content:
+            "You are a professional copywriter specializing in local business descriptions for Melbourne-based companies. Write compelling, unique descriptions that help businesses stand out in local directories.",
         },
         {
-          role: "user", 
-          content: prompt
-        }
+          role: "user",
+          content: prompt,
+        },
       ],
       maxTokens: 200,
     });
 
     const content = result.choices[0]?.message?.content;
-    const description = typeof content === 'string' ? content.trim() : null;
-    
+    const description = typeof content === "string" ? content.trim() : null;
+
     if (!description) {
       throw new Error("No description generated");
     }
@@ -378,6 +382,8 @@ Do not include contact information, hours, or location details.`;
     return description;
   } catch (error) {
     console.error("Failed to generate business description:", error);
-    throw new Error("Failed to generate business description. Please try again.");
+    throw new Error(
+      "Failed to generate business description. Please try again."
+    );
   }
 }
