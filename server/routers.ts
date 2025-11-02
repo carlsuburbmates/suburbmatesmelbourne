@@ -5,6 +5,7 @@ import { publicProcedure, router, protectedProcedure } from "./_core/trpc";
 import { z } from "zod";
 import * as db from "./db";
 import { TRPCError } from "@trpc/server";
+import { trackBusinessCreated } from "./_core/notification";
 import crypto from "crypto";
 
 export const appRouter = router({
@@ -106,6 +107,14 @@ export const appRouter = router({
           website: input.website,
           openingHours: input.openingHours,
           profileImage: input.profileImage,
+        });
+
+        // Track business creation event in PostHog
+        await trackBusinessCreated(ctx.user.id.toString(), {
+          businessName: input.businessName,
+          suburb: input.suburb,
+          category: input.services,
+          hasABN: !!input.abn
         });
 
         return { success: true, businessId: business[0].insertId };

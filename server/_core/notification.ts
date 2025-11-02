@@ -6,6 +6,77 @@ export type NotificationPayload = {
   content: string;
 };
 
+export type PostHogEvent = {
+  event: string;
+  distinctId: string;
+  properties?: Record<string, any>;
+};
+
+/**
+ * Send server-side events to PostHog for analytics tracking
+ */
+export async function trackEvent({ event, distinctId, properties = {} }: PostHogEvent): Promise<boolean> {
+  if (!ENV.posthogProjectApiKey) {
+    console.warn('[Analytics] PostHog API key not configured, skipping event tracking');
+    return false;
+  }
+
+  const payload = {
+    api_key: ENV.posthogProjectApiKey,
+    event,
+    distinct_id: distinctId,
+    properties: {
+      ...properties,
+      timestamp: new Date().toISOString(),
+      $lib: "suburbmates-server",
+      $lib_version: "1.0.0"
+    }
+  };
+
+  try {
+    const response = await fetch('https://app.posthog.com/capture/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+      console.warn(`[Analytics] Failed to track event: ${response.status} ${response.statusText}`);
+      return false;
+    }
+
+    console.log(`[Analytics] Event tracked: ${event} for user ${distinctId}`);
+    return true;
+  } catch (error) {
+    console.warn('[Analytics] Error tracking event:', error);
+    return false;
+  }
+}
+
+/**
+ * Track business creation events for analytics
+ */
+export async function trackBusinessCreated(userId: string, businessData: { 
+  businessName: string; 
+  suburb?: string; 
+  category?: string;
+  hasABN?: boolean;
+}): Promise<void> {
+  await trackEvent({
+    event: 'business_created',
+    distinctId: userId,
+    properties: {
+      business_name: businessData.businessName,
+      suburb: businessData.suburb,
+      category: businessData.category,
+      has_abn: businessData.hasABN,
+      source: 'vendor_dashboard'
+    }
+  });
+}
+
 const TITLE_MAX_LENGTH = 1200;
 const CONTENT_MAX_LENGTH = 20000;
 
@@ -13,15 +84,7 @@ const trimValue = (value: string): string => value.trim();
 const isNonEmptyString = (value: unknown): value is string =>
   typeof value === "string" && value.trim().length > 0;
 
-const buildEndpointUrl = (baseUrl: string): string => {
-  const normalizedBase = baseUrl.endsWith("/")
-    ? baseUrl
-    : `${baseUrl}/`;
-  return new URL(
-    "webdevtoken.v1.WebDevService/SendNotification",
-    normalizedBase
-  ).toString();
-};
+
 
 const validatePayload = (input: NotificationPayload): NotificationPayload => {
   if (!isNonEmptyString(input.title)) {
@@ -58,57 +121,25 @@ const validatePayload = (input: NotificationPayload): NotificationPayload => {
 };
 
 /**
- * Dispatches a project-owner notification through the Manus Notification Service.
- * Returns `true` if the request was accepted, `false` when the upstream service
- * cannot be reached (callers can fall back to email/slack). Validation errors
- * bubble up as TRPC errors so callers can fix the payload.
+ * Track owner notification events (replaces old Manus notification service)
+ * Now tracks to PostHog analytics instead of sending notifications
  */
 export async function notifyOwner(
   payload: NotificationPayload
 ): Promise<boolean> {
   const { title, content } = validatePayload(payload);
 
-  if (!ENV.forgeApiUrl) {
-    throw new TRPCError({
-      code: "INTERNAL_SERVER_ERROR",
-      message: "Notification service URL is not configured.",
-    });
-  }
-
-  if (!ENV.forgeApiKey) {
-    throw new TRPCError({
-      code: "INTERNAL_SERVER_ERROR",
-      message: "Notification service API key is not configured.",
-    });
-  }
-
-  const endpoint = buildEndpointUrl(ENV.forgeApiUrl);
-
-  try {
-    const response = await fetch(endpoint, {
-      method: "POST",
-      headers: {
-        accept: "application/json",
-        authorization: `Bearer ${ENV.forgeApiKey}`,
-        "content-type": "application/json",
-        "connect-protocol-version": "1",
-      },
-      body: JSON.stringify({ title, content }),
-    });
-
-    if (!response.ok) {
-      const detail = await response.text().catch(() => "");
-      console.warn(
-        `[Notification] Failed to notify owner (${response.status} ${response.statusText})${
-          detail ? `: ${detail}` : ""
-        }`
-      );
-      return false;
+  // Track as analytics event instead of sending notification
+  await trackEvent({
+    event: 'owner_notification',
+    distinctId: ENV.ownerOpenId || 'system',
+    properties: {
+      notification_title: title,
+      notification_content: content,
+      source: 'system'
     }
+  });
 
-    return true;
-  } catch (error) {
-    console.warn("[Notification] Error calling notification service:", error);
-    return false;
-  }
+  console.log(`[Analytics] Owner notification tracked: ${title}`);
+  return true;
 }

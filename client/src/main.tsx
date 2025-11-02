@@ -15,6 +15,8 @@ if (import.meta.env.VITE_POSTHOG_PROJECT_API_KEY) {
   posthog.init(import.meta.env.VITE_POSTHOG_PROJECT_API_KEY, {
     api_host: import.meta.env.VITE_POSTHOG_HOST || "https://app.posthog.com",
     person_profiles: "identified_only",
+    capture_pageview: false, // We'll handle pageviews manually for better tracking
+    capture_pageleave: true,
     loaded: posthog => {
       if (import.meta.env.DEV) posthog.debug(); // debug mode in development
     },

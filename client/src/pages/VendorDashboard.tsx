@@ -6,9 +6,13 @@ import { useState } from "react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { Sparkles } from "lucide-react";
+import { usePostHogPageView, trackBusinessAction, trackAIEvent, trackEvent } from "@/lib/analytics";
 
 export default function VendorDashboard() {
   const { user } = useAuth();
+
+  // Track page view
+  usePostHogPageView('vendor_dashboard');
   const [formData, setFormData] = useState({
     businessName: "",
     abn: "",
@@ -19,8 +23,13 @@ export default function VendorDashboard() {
   });
 
   const createBusinessMutation = trpc.business.create.useMutation({
-    onSuccess: () => {
+    onSuccess: (data) => {
       toast.success("Business created successfully!");
+      trackBusinessAction('created', {
+        businessId: data.businessId,
+        businessName: formData.businessName,
+        suburb: formData.suburb
+      });
       setFormData({
         businessName: "",
         abn: "",
@@ -32,6 +41,7 @@ export default function VendorDashboard() {
     },
     onError: (error) => {
       toast.error(error.message);
+      trackEvent('business_creation_failed', { error: error.message });
     },
   });
 
@@ -40,12 +50,22 @@ export default function VendorDashboard() {
       if (response.success) {
         setFormData({ ...formData, about: response.description });
         toast.success("Description generated successfully!");
+        trackAIEvent('description_generated', {
+          business_name: formData.businessName,
+          category: 'General Business',
+          success: true
+        });
       } else {
         toast.error("Failed to generate description");
+        trackAIEvent('description_generated', { success: false });
       }
     },
     onError: (error) => {
       toast.error(error.message || "Failed to generate description");
+      trackAIEvent('description_generated', { 
+        success: false, 
+        error: error.message 
+      });
     },
   });
 
@@ -59,6 +79,11 @@ export default function VendorDashboard() {
       toast.error("Please enter a business name first");
       return;
     }
+    
+    // Track AI button click
+    trackAIEvent('description_button_clicked', {
+      business_name: formData.businessName
+    });
     
     // For category, we'll use a simple classification based on business name
     // or default to "General Business" - this could be enhanced with a category selector

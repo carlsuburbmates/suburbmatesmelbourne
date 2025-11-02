@@ -4,10 +4,14 @@ import { Card } from "@/components/ui/card";
 import { MapPin, Search, Shield, Zap } from "lucide-react";
 import { APP_LOGO, APP_TITLE, getLoginUrl } from "@/const";
 import { useLocation } from "wouter";
+import { usePostHogPageView, trackEvent } from "@/lib/analytics";
 
 export default function Home() {
   const { user, isAuthenticated } = useAuth();
   const [, setLocation] = useLocation();
+
+  // Track page view
+  usePostHogPageView('homepage');
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -21,7 +25,10 @@ export default function Home() {
           <div className="flex items-center gap-4">
             <Button
               variant="ghost"
-              onClick={() => setLocation("/directory")}
+              onClick={() => {
+                trackEvent('navigation_click', { destination: 'directory', source: 'homepage_nav' });
+                setLocation("/directory");
+              }}
             >
               Browse Directory
             </Button>
