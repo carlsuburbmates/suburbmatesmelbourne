@@ -22,6 +22,7 @@
 ## 📋 Current Schema Baseline (Phase 1 Analysis)
 
 ### Existing Tables (6)
+
 - `users` - Authentication & roles
 - `businesses` - Directory core
 - `agreements` - Terms acceptance
@@ -30,6 +31,7 @@
 - `melbourne_suburbs` - Geofencing
 
 ### Statistics
+
 - **Tables:** 6
 - **Columns:** 56
 - **Indexes:** 10
@@ -44,10 +46,12 @@
 Based on marketplace patterns, the MVP likely includes:
 
 ### Core Tables (Already Have)
+
 - ✅ `users` - User accounts and authentication
 - ✅ `businesses` - Business directory listings
 
 ### Marketplace Tables (Likely Missing)
+
 - ❓ `listings` - Product/service listings
 - ❓ `reviews` - Business and product reviews
 - ❓ `ratings` - Review ratings (1-5 stars)
@@ -56,6 +60,7 @@ Based on marketplace patterns, the MVP likely includes:
 - ❓ `tags` - Searchable tags
 
 ### Transaction Tables (Likely Missing)
+
 - ❓ `orders` - Transactions/bookings
 - ❓ `order_items` - Line items in orders
 - ❓ `payments` - Payment records
@@ -63,12 +68,14 @@ Based on marketplace patterns, the MVP likely includes:
 - ❓ `refunds` - Refund tracking
 
 ### Communication Tables (Likely Missing)
+
 - ❓ `messages` - Direct messaging
 - ❓ `inquiries` - Customer inquiries
 - ❓ `notifications` - User notifications
 - ❓ `favorites` - Saved listings
 
 ### Admin/Analytics Tables (Likely Missing)
+
 - ❓ `audit_logs` - Admin activity tracking
 - ❓ `analytics_events` - Extended analytics
 - ❓ `disputes` - Transaction disputes
@@ -79,6 +86,7 @@ Based on marketplace patterns, the MVP likely includes:
 ## 📥 How to Provide MVP Schema
 
 ### Option 1: Copy from Reference Project
+
 ```bash
 # In terminal at /Users/carlg/Documents/
 cp suburbmates2/drizzle/schema.ts ./suburbmates/docs/schema_mvp.ts
@@ -88,18 +96,23 @@ git commit -m "docs: Add MVP schema for Phase 2 comparison"
 ```
 
 ### Option 2: Export as JSON
+
 If schema.ts is too large, convert to JSON:
+
 ```bash
 # Python script to parse schema.ts and extract structure
 python3 scripts/extract_schema.py suburbmates2/drizzle/schema.ts > docs/schema_mvp.json
 ```
 
 ### Option 3: Manual Documentation
+
 Create `docs/schema_mvp_tables.md` with format:
+
 ```markdown
 ## MVP Schema Tables
 
 ### listings table
+
 - id (int, primary key)
 - businessId (int, foreign key)
 - title (varchar)
@@ -116,6 +129,7 @@ Create `docs/schema_mvp_tables.md` with format:
 ## 🔍 Schema Comparison Framework
 
 ### Step 1: Extract MVP Tables
+
 ```json
 {
   "mvp_tables": [
@@ -140,7 +154,9 @@ Create `docs/schema_mvp_tables.md` with format:
 ```
 
 ### Step 2: Identify Differences
+
 **Missing in Current (Need to Add):**
+
 ```
 - listings
 - reviews
@@ -151,6 +167,7 @@ Create `docs/schema_mvp_tables.md` with format:
 ```
 
 **Missing in MVP (New Features):**
+
 ```
 - consents (GDPR compliance - added in Phase 0)
 - email_tokens (passwordless - added in Phase 0)
@@ -158,7 +175,9 @@ Create `docs/schema_mvp_tables.md` with format:
 ```
 
 ### Step 3: Column-Level Diff
+
 For each existing table, compare columns:
+
 ```
 USERS TABLE:
 ✅ Current has: id, openId, name, email, role, createdAt, updatedAt, lastSignedIn
@@ -168,6 +187,7 @@ USERS TABLE:
 ```
 
 ### Step 4: Enum Comparison
+
 ```
 role enum:
 - Current: ["user", "admin", "buyer", "business_owner", "vendor"]
@@ -180,23 +200,26 @@ role enum:
 ## 📊 Expected Phase 2 Output Files
 
 ### 1. `docs/schema_mvp.json` (Input)
+
 MVP schema extracted and documented
 
 ### 2. `docs/schema_diff_phase2.json` (Analysis)
+
 ```json
 {
   "analysis": {
     "tablesInMvp": 15,
     "tablesInCurrent": 6,
     "tablesOnlyInMvp": [
-      "listings", "reviews", "orders", "payments", "images", "categories"
+      "listings",
+      "reviews",
+      "orders",
+      "payments",
+      "images",
+      "categories"
     ],
-    "tablesOnlyInCurrent": [
-      "consents", "email_tokens", "melbourne_suburbs"
-    ],
-    "commonTables": [
-      "users", "businesses", "agreements"
-    ]
+    "tablesOnlyInCurrent": ["consents", "email_tokens", "melbourne_suburbs"],
+    "commonTables": ["users", "businesses", "agreements"]
   },
   "columnDiffs": {
     "users": {
@@ -217,24 +240,26 @@ MVP schema extracted and documented
 ```
 
 ### 3. `docs/migration_plan_phase2.md` (Strategy)
+
 Migration steps, rollback procedures, feature integration plan
 
 ### 4. `docs/reports/phase-2.md` (Official Report)
+
 Executive summary with recommendations
 
 ---
 
 ## 🚀 Phase 2 Timeline
 
-| Step | Task | Duration | Owner |
-|------|------|----------|-------|
-| 1 | Obtain MVP schema | 1-2 hours | User |
-| 2 | Upload to `docs/schema_mvp.json` | 5 min | User |
-| 3 | Run schema diff analysis | 30 min | AI Agent |
-| 4 | Generate comparison report | 30 min | AI Agent |
-| 5 | Create migration plan | 1-2 hours | AI Agent |
-| 6 | Review and approve plan | 30 min | User |
-| 7 | Lock Phase 2 | 5 min | User |
+| Step | Task                             | Duration  | Owner    |
+| ---- | -------------------------------- | --------- | -------- |
+| 1    | Obtain MVP schema                | 1-2 hours | User     |
+| 2    | Upload to `docs/schema_mvp.json` | 5 min     | User     |
+| 3    | Run schema diff analysis         | 30 min    | AI Agent |
+| 4    | Generate comparison report       | 30 min    | AI Agent |
+| 5    | Create migration plan            | 1-2 hours | AI Agent |
+| 6    | Review and approve plan          | 30 min    | User     |
+| 7    | Lock Phase 2                     | 5 min     | User     |
 
 **Total Time:** 4-6 hours (mostly waiting for MVP schema)
 
@@ -273,12 +298,14 @@ Before starting actual comparison:
 ## 🔄 Next Actions
 
 ### Immediate (User)
+
 1. **Locate MVP schema** from `/Users/carlg/Documents/suburbmates2/drizzle/schema.ts`
 2. **Copy or export** the MVP schema
 3. **Paste content** here or save to `docs/schema_mvp.json`
 4. **Notify** when ready for analysis
 
 ### After Receiving MVP Schema (AI Agent)
+
 1. Parse and validate MVP schema structure
 2. Run automated column-by-column comparison
 3. Analyze enum value differences
@@ -302,6 +329,7 @@ Before starting actual comparison:
 If you need to convert MVP schema.ts to JSON format:
 
 **Using jq + Node.js:**
+
 ```bash
 # Install required tools
 npm install -g @swc/core typescript
