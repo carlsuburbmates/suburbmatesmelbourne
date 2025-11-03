@@ -1,0 +1,183 @@
+{
+  "metadata": {
+    "project": "Suburbmates",
+    "extractedFrom": "client/src/index.css",
+    "extractedOn": "2025-11-03",
+    "framework": "Tailwind CSS 4",
+    "designSystem": "shadcn/ui with Forest Green + Emerald + Gold theme"
+  },
+  "colors": {
+    "primary": {
+      "value": "#2d5016",
+      "description": "Forest Green - premium brand color",
+      "usage": "Primary buttons, headers, brand elements"
+    },
+    "primary-foreground": {
+      "value": "#ffffff",
+      "description": "Text on primary background"
+    },
+    "chart-1": {
+      "value": "#50c878",
+      "description": "Emerald - data visualization primary"
+    },
+    "chart-2": {
+      "value": "#2d5016",
+      "description": "Forest Green - data visualization secondary"
+    },
+    "chart-3": {
+      "value": "#ffd700",
+      "description": "Gold - data visualization accent"
+    },
+    "chart-4": {
+      "value": "#228b22",
+      "description": "Forest Green lighter - data visualization"
+    },
+    "chart-5": {
+      "value": "#32cd32",
+      "description": "Lime Green - data visualization"
+    },
+    "background": {
+      "value": "#fafbf9",
+      "description": "Off-white with slight warm tone - page background"
+    },
+    "foreground": {
+      "value": "#1a1a1a",
+      "description": "Deep charcoal - primary text color"
+    },
+    "card": {
+      "value": "#ffffff",
+      "description": "Card background"
+    },
+    "card-foreground": {
+      "value": "#1a1a1a",
+      "description": "Card text color"
+    },
+    "popover": {
+      "value": "#ffffff",
+      "description": "Popover/dropdown background"
+    },
+    "popover-foreground": {
+      "value": "#1a1a1a",
+      "description": "Popover/dropdown text"
+    },
+    "secondary": {
+      "value": "#f3f4f1",
+      "description": "Soft neutral - secondary buttons, backgrounds"
+    },
+    "secondary-foreground": {
+      "value": "#3f3f3f",
+      "description": "Text on secondary background"
+    },
+    "muted": {
+      "value": "#e5e7e1",
+      "description": "Muted background for subtle elements"
+    },
+    "muted-foreground": {
+      "value": "#6b7280",
+      "description": "Muted text color"
+    },
+    "accent": {
+      "value": "#ffd700",
+      "description": "Gold accent - highlights, badges, special elements"
+    },
+    "accent-foreground": {
+      "value": "#2d5016",
+      "description": "Text on accent background"
+    },
+    "destructive": {
+      "value": "#dc2626",
+      "description": "Error/destructive actions - red"
+    },
+    "destructive-foreground": {
+      "value": "#ffffff",
+      "description": "Text on destructive background"
+    },
+    "border": {
+      "value": "#e5e7e1",
+      "description": "Border color for cards, inputs, dividers"
+    },
+    "input": {
+      "value": "#f3f4f1",
+      "description": "Input field background"
+    },
+    "ring": {
+      "value": "#50c878",
+      "description": "Emerald ring - focus indicators"
+    },
+    "sidebar": {
+      "value": "#fafbf9",
+      "description": "Sidebar background"
+    },
+    "sidebar-foreground": {
+      "value": "#1a1a1a",
+      "description": "Sidebar text"
+    },
+    "sidebar-primary": {
+      "value": "#2d5016",
+      "description": "Sidebar primary color"
+    },
+    "sidebar-primary-foreground": {
+      "value": "#ffffff",
+      "description": "Sidebar primary text"
+    },
+    "sidebar-accent": {
+      "value": "#e5e7e1",
+      "description": "Sidebar accent background"
+    },
+    "sidebar-accent-foreground": {
+      "value": "#1a472a",
+      "description": "Sidebar accent text"
+    },
+    "sidebar-border": {
+      "value": "#e5e7e1",
+      "description": "Sidebar border color"
+    },
+    "sidebar-ring": {
+      "value": "#50c878",
+      "description": "Sidebar focus ring"
+    }
+  },
+  "spacing": {
+    "radius": {
+      "value": "0.65rem",
+      "description": "Base border radius"
+    },
+    "radius-sm": {
+      "value": "calc(0.65rem - 4px)",
+      "description": "Small border radius"
+    },
+    "radius-md": {
+      "value": "calc(0.65rem - 2px)",
+      "description": "Medium border radius"
+    },
+    "radius-lg": {
+      "value": "0.65rem",
+      "description": "Large border radius"
+    },
+    "radius-xl": {
+      "value": "calc(0.65rem + 4px)",
+      "description": "Extra large border radius"
+    }
+  },
+  "animations": {
+    "transitions": {
+      "default": "transition-all duration-200 ease-out",
+      "hover-lift": "transition-all duration-200 hover:shadow-lg hover:scale-105",
+      "button-press": "transition-all duration-200 ease-out hover:scale-105 active:scale-95 hover:shadow-md",
+      "card-hover": "transition-all duration-200 ease-out hover:shadow-xl hover:scale-[1.02] hover:-translate-y-1"
+    }
+  },
+  "components": {
+    "card": {
+      "base": "bg-card text-card-foreground rounded-lg border border-border shadow-sm",
+      "hover": "transition-all duration-200 ease-out hover:shadow-xl hover:scale-[1.02] hover:-translate-y-1"
+    }
+  },
+  "statistics": {
+    "totalTokens": 35,
+    "colorTokens": 32,
+    "spacingTokens": 5,
+    "animationTokens": 4,
+    "componentTokens": 2
+  }
+}
