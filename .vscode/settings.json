@@ -1,0 +1,43 @@
+{
+  "typescript.preferences.includePackageJsonAutoImports": "on",
+  "typescript.suggest.autoImports": true,
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
+  "files.associations": {
+    "*.tsx": "typescriptreact",
+    "*.ts": "typescript"
+  },
+  "emmet.includeLanguages": {
+    "typescriptreact": "html"
+  },
+  "typescript.updateImportsOnFileMove.enabled": "always",
+  "javascript.updateImportsOnFileMove.enabled": "always",
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/dist": true,
+    "**/build": true,
+    "**/.next": true,
+    "**/coverage": true
+  },
+  "files.exclude": {
+    "**/node_modules": true,
+    "**/dist": true,
+    "**/build": true,
+    "**/.next": true
+  },
+  "typescript.preferences.importModuleSpecifier": "relative",
+  "path-intellisense.mappings": {
+    "@": "${workspaceFolder}/client/src",
+    "@shared": "${workspaceFolder}/shared",
+    "@assets": "${workspaceFolder}/attached_assets"
+  },
+  "tailwindCSS.experimental.classRegex": [
+    ["cn\\(([^)]*)\\)", "'([^']*)'"],
+    ["cva\\(([^)]*)\\)", "[\"'`]([^\"'`]*)[\"'`]"],
+    ["cx\\(([^)]*)\\)", "'([^']*)'"]
+  ],
+  "css.lint.unknownAtRules": "ignore"
+}
