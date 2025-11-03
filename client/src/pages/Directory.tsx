@@ -10,6 +10,7 @@ export default function Directory() {
   const [, setLocation] = useLocation();
   const [suburb, setSuburb] = useState("");
   const [businessName, setBusinessName] = useState("");
+  const [region, setRegion] = useState("");
 
   const { data: businesses, isLoading } = trpc.business.list.useQuery({
     suburb: suburb || undefined,
@@ -21,6 +22,8 @@ export default function Directory() {
   const { data: suburbs } = trpc.business.getMelbournSuburbs.useQuery({
     limit: 50,
   });
+
+  const { data: regions } = trpc.location.listRegions.useQuery();
 
   return (
     <div className="min-h-screen bg-background">
@@ -55,6 +58,25 @@ export default function Directory() {
                   />
                 </div>
 
+                {/* Region Filter */}
+                <div>
+                  <label className="text-sm font-medium mb-2 block">
+                    Region
+                  </label>
+                  <select
+                    value={region}
+                    onChange={e => setRegion(e.target.value)}
+                    className="w-full px-3 py-2 border border-border rounded-md bg-background text-foreground"
+                  >
+                    <option value="">All Regions</option>
+                    {regions?.filter(r => r !== null).map(r => (
+                      <option key={r} value={r ?? ""}>
+                        {r}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
                 {/* Suburb Filter */}
                 <div>
                   <label className="text-sm font-medium mb-2 block">
@@ -80,6 +102,7 @@ export default function Directory() {
                   onClick={() => {
                     setSuburb("");
                     setBusinessName("");
+                    setRegion("");
                   }}
                 >
                   Clear Filters

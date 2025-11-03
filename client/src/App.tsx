@@ -11,6 +11,9 @@ import BusinessProfile from "./pages/BusinessProfile";
 import Auth from "./pages/Auth";
 import UserDashboard from "./pages/UserDashboard";
 import VendorDashboard from "./pages/VendorDashboard";
+import { Marketplace } from "./pages/Marketplace";
+import { VendorSetup } from "./pages/VendorSetup";
+import { VendorProfile } from "./pages/VendorProfile";
 
 function Router() {
   return (
@@ -21,6 +24,9 @@ function Router() {
       <Route path={"/auth"} component={Auth} />
       <Route path={"/dashboard"} component={UserDashboard} />
       <Route path={"/vendor/dashboard"} component={VendorDashboard} />
+      <Route path={"/marketplace/vendors"} component={Marketplace} />
+      <Route path={"/dashboard/vendor/setup"} component={VendorSetup} />
+      <Route path={"/vendor/:vendorId"} component={VendorProfile} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />

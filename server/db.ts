@@ -1,4 +1,4 @@
-import { eq, and, desc, like, isNull } from "drizzle-orm";
+import { eq, and, desc, like, isNull, isNotNull } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import {
   InsertUser,
@@ -8,6 +8,9 @@ import {
   consents,
   emailTokens,
   melbournSuburbs,
+  vendorsMeta,
+  InsertVendorMeta,
+  VendorMeta,
 } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
@@ -368,4 +371,80 @@ export async function getMelbournSuburbByName(suburb: string) {
     .where(eq(melbournSuburbs.suburb, suburb))
     .limit(1);
   return result.length > 0 ? result[0] : undefined;
+}
+
+// ============ VENDOR QUERIES ============
+
+export async function getVendorMeta(businessId: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  const result = await db
+    .select()
+    .from(vendorsMeta)
+    .where(eq(vendorsMeta.businessId, businessId))
+    .limit(1);
+
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function createVendorMeta(
+  businessId: number,
+  stripeAccountId: string,
+  fulfilmentTerms?: object,
+  refundPolicyUrl?: string
+) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const values: InsertVendorMeta = {
+    businessId,
+    stripeAccountId,
+    fulfilmentTerms: fulfilmentTerms ? JSON.stringify(fulfilmentTerms) : null,
+    refundPolicyUrl,
+  };
+
+  return await db.insert(vendorsMeta).values(values);
+}
+
+export async function updateVendorMeta(
+  businessId: number,
+  updates: Partial<InsertVendorMeta>
+) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  return await db
+    .update(vendorsMeta)
+    .set(updates)
+    .where(eq(vendorsMeta.businessId, businessId));
+}
+
+export async function listAllRegions() {
+  const db = await getDb();
+  if (!db) return [];
+
+  const result = await db
+    .selectDistinct({ region: melbournSuburbs.region })
+    .from(melbournSuburbs)
+    .where(isNotNull(melbournSuburbs.region));
+
+  return result;
+}
+
+export async function getBusinessesByRegion(
+  region: string,
+  limit: number = 20,
+  offset: number = 0
+) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db
+    .select()
+    .from(businesses)
+    .innerJoin(melbournSuburbs, eq(businesses.suburb, melbournSuburbs.suburb))
+    .where(eq(melbournSuburbs.region, region))
+    .limit(limit)
+    .offset(offset);
 }

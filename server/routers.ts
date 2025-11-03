@@ -469,6 +469,174 @@ export const appRouter = router({
         }
       }),
   }),
+
+  // ============ VENDOR ROUTER ============
+  vendor: router({
+    /**
+     * Initiate Stripe Connect onboarding for a business
+     */
+    initiateStripeOnboarding: protectedProcedure
+      .input(
+        z.object({
+          businessId: z.number(),
+          redirectUrl: z.string().url(),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        // Verify business belongs to authenticated user
+        const business = await db.getBusinessById(input.businessId);
+        if (!business || business.ownerId !== ctx.user?.id) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "Not authorized to onboard this business",
+          });
+        }
+
+        try {
+          // TODO: Create Stripe Express account
+          // const stripeAccount = await createStripeExpressAccount(...)
+          // For now, return mock response
+          const stripeAccountId = `acct_mock_${input.businessId}`;
+
+          // Store in vendors_meta
+          await db.createVendorMeta(input.businessId, stripeAccountId);
+
+          // Log consent action
+          await logConsent(ctx.user.id, "vendor_onboarding_initiated");
+
+          // TODO: Return actual Stripe onboarding link
+          return {
+            success: true,
+            stripeAccountId,
+            onboardingLink: `https://stripe.com/oauth/authorize?mock=true`,
+          };
+        } catch (error) {
+          console.error("Failed to initiate Stripe onboarding:", error);
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Failed to initiate onboarding",
+          });
+        }
+      }),
+
+    /**
+     * Complete Stripe onboarding (called after OAuth callback)
+     */
+    completeStripeOnboarding: protectedProcedure
+      .input(z.object({ businessId: z.number() }))
+      .query(async ({ ctx, input }) => {
+        const vendor = await db.getVendorMeta(input.businessId);
+        if (!vendor) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Vendor not found",
+          });
+        }
+
+        // TODO: Verify Stripe account completion via Stripe API
+        // For now, assume complete
+        await logConsent(ctx.user.id, "vendor_onboarding_completed");
+
+        return {
+          success: true,
+          vendor,
+        };
+      }),
+
+    /**
+     * Get vendor metadata (public)
+     */
+    getVendorMeta: publicProcedure
+      .input(z.object({ businessId: z.number() }))
+      .query(async ({ input }) => {
+        const vendor = await db.getVendorMeta(input.businessId);
+        if (!vendor) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Vendor not found",
+          });
+        }
+        return vendor;
+      }),
+
+    /**
+     * List all vendors with optional filtering (paginated)
+     */
+    listAll: publicProcedure
+      .input(
+        z.object({
+          region: z.string().optional(),
+          limit: z.number().min(1).max(100).default(20),
+          offset: z.number().min(0).default(0),
+        })
+      )
+      .query(async ({ input }) => {
+        if (input.region) {
+          return await db.getBusinessesByRegion(
+            input.region,
+            input.limit,
+            input.offset
+          );
+        }
+
+        // Get all businesses with vendor metadata
+        const businesses = await db.searchBusinesses({
+          limit: input.limit,
+          offset: input.offset,
+        });
+
+        // TODO: Filter to only vendors with vendors_meta entries
+        return businesses;
+      }),
+
+    /**
+     * Get vendor details by business ID
+     */
+    getDetails: publicProcedure
+      .input(z.object({ vendorId: z.number() }))
+      .query(async ({ input }) => {
+        const business = await db.getBusinessById(input.vendorId);
+        if (!business) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Vendor not found",
+          });
+        }
+
+        const vendor = await db.getVendorMeta(input.vendorId);
+        return { business, vendor };
+      }),
+  }),
+
+  // ============ LOCATION ROUTER ============
+  location: router({
+    /**
+     * List all Melbourne regions
+     */
+    listRegions: publicProcedure.query(async () => {
+      const regions = await db.listAllRegions();
+      return regions.map(r => r.region).filter(Boolean);
+    }),
+
+    /**
+     * Get businesses by region
+     */
+    getBusinessesByRegion: publicProcedure
+      .input(
+        z.object({
+          region: z.string(),
+          limit: z.number().min(1).max(100).default(20),
+          offset: z.number().min(0).default(0),
+        })
+      )
+      .query(async ({ input }) => {
+        return await db.getBusinessesByRegion(
+          input.region,
+          input.limit,
+          input.offset
+        );
+      }),
+  }),
 });
 
 export type AppRouter = typeof appRouter;

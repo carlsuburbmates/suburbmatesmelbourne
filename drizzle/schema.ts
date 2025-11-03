@@ -47,11 +47,13 @@ export type InsertUser = typeof users.$inferInsert;
 
 /**
  * Melbourne suburbs/postcodes reference table for geofencing
+ * Renamed to melbourne_postcodes to match MVP schema
  */
-export const melbournSuburbs = mysqlTable("melbourne_suburbs", {
+export const melbournSuburbs = mysqlTable("melbourne_postcodes", {
   id: int("id").autoincrement().primaryKey(),
   suburb: varchar("suburb", { length: 100 }).notNull().unique(),
   postcode: varchar("postcode", { length: 4 }).notNull(),
+  region: varchar("region", { length: 100 }), // Regional grouping (e.g., Inner Melbourne, Eastern Suburbs)
   latitude: decimal("latitude", { precision: 10, scale: 8 }),
   longitude: decimal("longitude", { precision: 11, scale: 8 }),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
@@ -105,6 +107,36 @@ export const businesses = mysqlTable(
 
 export type Business = typeof businesses.$inferSelect;
 export type InsertBusiness = typeof businesses.$inferInsert;
+
+/**
+ * Vendor metadata table - created when Business Owner upgrades to Vendor
+ * Stores Stripe integration and vendor-specific configuration
+ */
+export const vendorsMeta = mysqlTable(
+  "vendors_meta",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    businessId: int("businessId").notNull().unique(),
+    stripeAccountId: varchar("stripeAccountId", { length: 255 })
+      .notNull()
+      .unique(),
+    fulfilmentTerms: text("fulfilmentTerms"), // JSON object with pickup/delivery options
+    refundPolicyUrl: varchar("refundPolicyUrl", { length: 255 }),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  table => ({
+    businessIdIdx: index("businessIdIdx").on(table.businessId),
+    stripeAccountIdIdx: index("stripeAccountIdIdx").on(table.stripeAccountId),
+    businessFk: foreignKey({
+      columns: [table.businessId],
+      foreignColumns: [businesses.id],
+    }),
+  })
+);
+
+export type VendorMeta = typeof vendorsMeta.$inferSelect;
+export type InsertVendorMeta = typeof vendorsMeta.$inferInsert;
 
 /**
  * Business agreements table - terms and conditions acceptance
@@ -193,6 +225,10 @@ export const usersRelations = relations(users, ({ many }) => ({
 export const businessesRelations = relations(businesses, ({ one, many }) => ({
   owner: one(users, { fields: [businesses.ownerId], references: [users.id] }),
   agreements: many(agreements),
+  vendorMeta: one(vendorsMeta, {
+    fields: [businesses.id],
+    references: [vendorsMeta.businessId],
+  }),
 }));
 
 export const agreementsRelations = relations(agreements, ({ one }) => ({

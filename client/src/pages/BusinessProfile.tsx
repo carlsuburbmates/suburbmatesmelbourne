@@ -1,7 +1,8 @@
 import { useRoute } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { MapPin, Phone, Globe, Clock } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { MapPin, Phone, Globe, Clock, CheckCircle } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 
 export default function BusinessProfile() {
@@ -10,6 +11,11 @@ export default function BusinessProfile() {
 
   const { data: business, isLoading } = trpc.business.getById.useQuery(
     { id: businessId! },
+    { enabled: !!businessId }
+  );
+
+  const { data: vendorMeta } = trpc.vendor.getVendorMeta.useQuery(
+    { businessId: businessId! },
     { enabled: !!businessId }
   );
 
@@ -30,11 +36,19 @@ export default function BusinessProfile() {
                   <h1 className="text-4xl font-bold mb-2">
                     {business.businessName}
                   </h1>
-                  {business.abnVerifiedStatus === "verified" && (
-                    <div className="inline-flex items-center gap-2 text-sm bg-primary/10 text-primary px-3 py-1 rounded">
-                      ✓ ABN Verified
-                    </div>
-                  )}
+                  <div className="flex items-center gap-2">
+                    {business.abnVerifiedStatus === "verified" && (
+                      <Badge className="bg-primary/10 text-primary">
+                        ✓ ABN Verified
+                      </Badge>
+                    )}
+                    {vendorMeta?.stripeAccountId && (
+                      <Badge className="bg-blue-600 text-white">
+                        <CheckCircle className="h-3 w-3 mr-1" />
+                        Stripe Verified
+                      </Badge>
+                    )}
+                  </div>
                 </div>
               </div>
 

@@ -15,6 +15,13 @@
       "when": 1762095909892,
       "tag": "0001_silly_starhawk",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1730627000000,
+      "tag": "0002_vendor_marketplace",
+      "breakpoints": true
     }
   ]
 }
