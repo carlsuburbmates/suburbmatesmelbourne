@@ -6,7 +6,7 @@
 RENAME TABLE melbourne_suburbs TO melbourne_postcodes;
 
 -- Step 2: Add region column to geofencing table
-ALTER TABLE melbourne_postcodes ADD COLUMN region VARCHAR(100);
+ALTER TABLE melbourne_postcodes ADD COLUMN region VARCHAR(255);
 
 -- Step 3: Create vendors_meta table for Stripe integration
 CREATE TABLE `vendors_meta` (

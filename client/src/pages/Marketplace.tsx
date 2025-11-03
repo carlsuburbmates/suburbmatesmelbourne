@@ -1,8 +1,20 @@
 import { useState } from "react";
 import { trpc } from "@/lib/trpc";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -43,7 +55,9 @@ export function Marketplace() {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-emerald-900 mb-2">Vendor Marketplace</h1>
+          <h1 className="text-4xl font-bold text-emerald-900 mb-2">
+            Vendor Marketplace
+          </h1>
           <p className="text-lg text-emerald-700">
             Discover local businesses and vendors in Melbourne
           </p>
@@ -98,19 +112,25 @@ export function Marketplace() {
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <CardTitle className="text-emerald-900">{vendor.businessName}</CardTitle>
+                      <CardTitle className="text-emerald-900">
+                        {vendor.businessName}
+                      </CardTitle>
                       <CardDescription className="text-emerald-700">
                         {vendor.suburb}
                       </CardDescription>
                     </div>
                     {vendor.abnVerifiedStatus === "verified" && (
-                      <Badge className="bg-emerald-600 hover:bg-emerald-700">Verified</Badge>
+                      <Badge className="bg-emerald-600 hover:bg-emerald-700">
+                        Verified
+                      </Badge>
                     )}
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   {vendor.about && (
-                    <p className="text-sm text-gray-600 line-clamp-2">{vendor.about}</p>
+                    <p className="text-sm text-gray-600 line-clamp-2">
+                      {vendor.about}
+                    </p>
                   )}
                   {vendor.phone && (
                     <p className="text-sm text-gray-600">📞 {vendor.phone}</p>

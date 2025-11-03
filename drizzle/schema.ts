@@ -53,7 +53,7 @@ export const melbournSuburbs = mysqlTable("melbourne_postcodes", {
   id: int("id").autoincrement().primaryKey(),
   suburb: varchar("suburb", { length: 100 }).notNull().unique(),
   postcode: varchar("postcode", { length: 4 }).notNull(),
-  region: varchar("region", { length: 100 }), // Regional grouping (e.g., Inner Melbourne, Eastern Suburbs)
+  region: varchar("region", { length: 255 }), // Regional grouping (e.g., Inner Melbourne, Eastern Suburbs)
   latitude: decimal("latitude", { precision: 10, scale: 8 }),
   longitude: decimal("longitude", { precision: 11, scale: 8 }),
   createdAt: timestamp("createdAt").defaultNow().notNull(),

@@ -22,11 +22,15 @@ export function VendorProfile() {
   const [match, params] = useRoute("/vendor/:vendorId");
 
   const vendorId = useMemo(
-    () => params?.vendorId ? parseInt(params.vendorId) : undefined,
+    () => (params?.vendorId ? parseInt(params.vendorId) : undefined),
     [params]
   );
 
-  const { data: vendor, isLoading, error } = trpc.vendor.getDetails.useQuery(
+  const {
+    data: vendor,
+    isLoading,
+    error,
+  } = trpc.vendor.getDetails.useQuery(
     { vendorId: vendorId! },
     { enabled: !!vendorId }
   );
@@ -71,7 +75,10 @@ export function VendorProfile() {
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <a href="/marketplace/vendors" className="text-emerald-600 hover:text-emerald-700 mb-4 inline-block">
+          <a
+            href="/marketplace/vendors"
+            className="text-emerald-600 hover:text-emerald-700 mb-4 inline-block"
+          >
             ← Back to Vendors
           </a>
           <h1 className="text-4xl font-bold text-emerald-900 flex items-center gap-3">
@@ -91,7 +98,9 @@ export function VendorProfile() {
             {/* Business Info */}
             <Card className="bg-white border-emerald-200">
               <CardHeader>
-                <CardTitle className="text-emerald-900">Business Details</CardTitle>
+                <CardTitle className="text-emerald-900">
+                  Business Details
+                </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 {business?.description && (
@@ -103,7 +112,9 @@ export function VendorProfile() {
 
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
-                    <h3 className="font-medium text-emerald-900 mb-1">Location</h3>
+                    <h3 className="font-medium text-emerald-900 mb-1">
+                      Location
+                    </h3>
                     <div className="flex items-center gap-2 text-gray-700">
                       <MapPin className="h-4 w-4 text-emerald-600" />
                       {business?.suburb}
@@ -111,8 +122,16 @@ export function VendorProfile() {
                   </div>
 
                   <div>
-                    <h3 className="font-medium text-emerald-900 mb-1">Verification</h3>
-                    <Badge variant={business?.abnVerifiedStatus === "verified" ? "default" : "secondary"}>
+                    <h3 className="font-medium text-emerald-900 mb-1">
+                      Verification
+                    </h3>
+                    <Badge
+                      variant={
+                        business?.abnVerifiedStatus === "verified"
+                          ? "default"
+                          : "secondary"
+                      }
+                    >
                       {business?.abnVerifiedStatus === "verified"
                         ? "✓ ABN Verified"
                         : "Pending"}
@@ -129,8 +148,13 @@ export function VendorProfile() {
 
                 {business?.phone && (
                   <div>
-                    <h3 className="font-medium text-emerald-900 mb-1">Contact</h3>
-                    <a href={`tel:${business.phone}`} className="text-emerald-600 hover:underline">
+                    <h3 className="font-medium text-emerald-900 mb-1">
+                      Contact
+                    </h3>
+                    <a
+                      href={`tel:${business.phone}`}
+                      className="text-emerald-600 hover:underline"
+                    >
                       {business.phone}
                     </a>
                   </div>
@@ -138,7 +162,9 @@ export function VendorProfile() {
 
                 {business?.website && (
                   <div>
-                    <h3 className="font-medium text-emerald-900 mb-1">Website</h3>
+                    <h3 className="font-medium text-emerald-900 mb-1">
+                      Website
+                    </h3>
                     <a
                       href={business.website}
                       target="_blank"
@@ -157,7 +183,9 @@ export function VendorProfile() {
             {vendorMeta?.stripeAccountId && (
               <Card className="bg-white border-emerald-200">
                 <CardHeader>
-                  <CardTitle className="text-emerald-900">Vendor Information</CardTitle>
+                  <CardTitle className="text-emerald-900">
+                    Vendor Information
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {vendorMeta?.fulfilmentTerms && (
@@ -165,7 +193,9 @@ export function VendorProfile() {
                       <h3 className="font-medium text-emerald-900 mb-2">
                         Fulfilment Terms
                       </h3>
-                      <p className="text-gray-700">{vendorMeta.fulfilmentTerms}</p>
+                      <p className="text-gray-700">
+                        {vendorMeta.fulfilmentTerms}
+                      </p>
                     </div>
                   )}
 
@@ -194,8 +224,8 @@ export function VendorProfile() {
                       </p>
                     </div>
                     <p className="text-sm text-emerald-700">
-                      This vendor processes payments through Stripe, ensuring secure
-                      transactions.
+                      This vendor processes payments through Stripe, ensuring
+                      secure transactions.
                     </p>
                   </div>
                 </CardContent>
@@ -208,7 +238,9 @@ export function VendorProfile() {
             {/* Rating */}
             <Card className="bg-white border-emerald-200">
               <CardHeader>
-                <CardTitle className="text-emerald-900 text-lg">Rating</CardTitle>
+                <CardTitle className="text-emerald-900 text-lg">
+                  Rating
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="flex items-center gap-2 mb-2">
@@ -226,7 +258,9 @@ export function VendorProfile() {
             {/* Quick Actions */}
             <Card className="bg-white border-emerald-200">
               <CardHeader>
-                <CardTitle className="text-emerald-900 text-lg">Contact</CardTitle>
+                <CardTitle className="text-emerald-900 text-lg">
+                  Contact
+                </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 {business?.phone && (
@@ -243,7 +277,11 @@ export function VendorProfile() {
                     className="w-full bg-emerald-600 hover:bg-emerald-700 text-white"
                     asChild
                   >
-                    <a href={business.website} target="_blank" rel="noopener noreferrer">
+                    <a
+                      href={business.website}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
                       Visit Website
                     </a>
                   </Button>
@@ -260,8 +298,8 @@ export function VendorProfile() {
               </CardHeader>
               <CardContent>
                 <p className="text-xs text-emerald-700">
-                  Verified vendors on Suburbmates have completed Stripe setup and
-                  agree to our community standards and refund policies.
+                  Verified vendors on Suburbmates have completed Stripe setup
+                  and agree to our community standards and refund policies.
                 </p>
               </CardContent>
             </Card>

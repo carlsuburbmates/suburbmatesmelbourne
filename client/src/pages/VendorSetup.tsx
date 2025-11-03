@@ -2,7 +2,13 @@ import { useState } from "react";
 import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,7 +24,9 @@ export function VendorSetup() {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
   const [businessId, setBusinessId] = useState<string>("");
-  const [step, setStep] = useState<"select" | "connecting" | "complete">("select");
+  const [step, setStep] = useState<"select" | "connecting" | "complete">(
+    "select"
+  );
   const [error, setError] = useState<string>("");
 
   const initiateOnboarding = trpc.vendor.initiateStripeOnboarding.useMutation();
@@ -52,7 +60,9 @@ export function VendorSetup() {
       setStep("complete");
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Failed to initiate Stripe onboarding"
+        err instanceof Error
+          ? err.message
+          : "Failed to initiate Stripe onboarding"
       );
       setStep("select");
     }
@@ -174,9 +184,7 @@ export function VendorSetup() {
                 <CheckCircle className="h-6 w-6 text-emerald-600" />
                 Setup Complete!
               </CardTitle>
-              <CardDescription>
-                Your vendor account is ready
-              </CardDescription>
+              <CardDescription>Your vendor account is ready</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="bg-emerald-50 border border-emerald-200 rounded p-4">

@@ -69,11 +69,13 @@ export default function Directory() {
                     className="w-full px-3 py-2 border border-border rounded-md bg-background text-foreground"
                   >
                     <option value="">All Regions</option>
-                    {regions?.filter(r => r !== null).map(r => (
-                      <option key={r} value={r ?? ""}>
-                        {r}
-                      </option>
-                    ))}
+                    {regions
+                      ?.filter(r => r !== null)
+                      .map(r => (
+                        <option key={r} value={r ?? ""}>
+                          {r}
+                        </option>
+                      ))}
                   </select>
                 </div>
 
