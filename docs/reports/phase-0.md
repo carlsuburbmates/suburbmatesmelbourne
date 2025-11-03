@@ -19,11 +19,11 @@ Phase 0 establishes the **Suburbmates Copilot Repository** as the canonical sour
 
 | Check Item                         | Expected Outcome                                            | Result | Evidence                          |
 | ---------------------------------- | ----------------------------------------------------------- | ------ | --------------------------------- |
-| ① Home `/`                         | Forest-green + emerald-gold accents on buttons and headings | ✅      | CSS variables + component renders |
-| ② Directory `/directory`           | Business cards or placeholder grid renders, not blank       | ✅      | tRPC integration + UI layout      |
-| ③ Business profile `/business/:id` | Layout frame visible, "ABN Verified" badge placeholder      | ✅      | Dynamic routing + badge component |
-| ④ Consent banner                   | Banner appears on first visit, dismiss/accept works         | ✅      | ConsentBanner + tRPC mutation     |
-| ⑤ Console                          | No red runtime errors (minor 404s acceptable)               | ✅      | Clean server logs + Vite HMR      |
+| ① Home `/`                         | Forest-green + emerald-gold accents on buttons and headings | ✅     | CSS variables + component renders |
+| ② Directory `/directory`           | Business cards or placeholder grid renders, not blank       | ✅     | tRPC integration + UI layout      |
+| ③ Business profile `/business/:id` | Layout frame visible, "ABN Verified" badge placeholder      | ✅     | Dynamic routing + badge component |
+| ④ Consent banner                   | Banner appears on first visit, dismiss/accept works         | ✅     | ConsentBanner + tRPC mutation     |
+| ⑤ Console                          | No red runtime errors (minor 404s acceptable)               | ✅     | Clean server logs + Vite HMR      |
 
 ---
 
@@ -35,16 +35,16 @@ Phase 0 establishes the **Suburbmates Copilot Repository** as the canonical sour
 
 ```css
 /* Light Mode */
---primary: #2d5016;           /* Forest Green - brand color */
---chart-1: #50c878;           /* Emerald */
---ring: #50c878;              /* Emerald ring/focus */
+--primary: #2d5016; /* Forest Green - brand color */
+--chart-1: #50c878; /* Emerald */
+--ring: #50c878; /* Emerald ring/focus */
 --accent-foreground: #2d5016; /* Forest on accent */
---sidebar-primary: #2d5016;   /* Sidebar forest theme */
+--sidebar-primary: #2d5016; /* Sidebar forest theme */
 
 /* Dark Mode */
---primary: #50c878;           /* Emerald - bright in dark */
---chart-1: #50c878;           /* Emerald */
---chart-2: #2d5016;           /* Forest Green */
+--primary: #50c878; /* Emerald - bright in dark */
+--chart-1: #50c878; /* Emerald */
+--chart-2: #2d5016; /* Forest Green */
 --sidebar-accent-foreground: #10b981; /* Bright emerald accent */
 ```
 
@@ -72,14 +72,14 @@ Phase 0 establishes the **Suburbmates Copilot Repository** as the canonical sour
 
 ### Page Content Verification
 
-| Route            | Component             | Key Features                                   | Status |
-| ---------------- | --------------------- | ---------------------------------------------- | ------ |
-| `/`              | `Home.tsx`            | Hero, feature cards, navigation, CTA buttons   | ✅      |
-| `/directory`     | `Directory.tsx`       | Search filters, suburb dropdown, business grid | ✅      |
-| `/business/:id`  | `BusinessProfile.tsx` | Business details, ABN badge, contact info      | ✅      |
-| `/auth`          | `Auth.tsx`            | Manus OAuth integration                        | ✅      |
-| `/dashboard`     | `UserDashboard.tsx`   | User dashboard layout                          | ✅      |
-| `/vendor/...`    | `VendorDashboard.tsx` | Vendor-specific dashboard                      | ✅      |
+| Route           | Component             | Key Features                                   | Status |
+| --------------- | --------------------- | ---------------------------------------------- | ------ |
+| `/`             | `Home.tsx`            | Hero, feature cards, navigation, CTA buttons   | ✅     |
+| `/directory`    | `Directory.tsx`       | Search filters, suburb dropdown, business grid | ✅     |
+| `/business/:id` | `BusinessProfile.tsx` | Business details, ABN badge, contact info      | ✅     |
+| `/auth`         | `Auth.tsx`            | Manus OAuth integration                        | ✅     |
+| `/dashboard`    | `UserDashboard.tsx`   | User dashboard layout                          | ✅     |
+| `/vendor/...`   | `VendorDashboard.tsx` | Vendor-specific dashboard                      | ✅     |
 
 ---
 
@@ -214,16 +214,16 @@ fs: {
 
 **GitHub Actions:** `.github/workflows/ci-cd.yml`
 
-| Job                 | Status | Notes                                   |
-| ------------------- | ------ | --------------------------------------- |
-| Lint                | ✅      | ESLint + Prettier                       |
-| TypeCheck           | ✅      | 0 TypeScript errors                     |
-| Schema Validation   | ✅      | Drizzle schema generates successfully   |
-| Security Audit      | ✅      | No critical vulnerabilities             |
-| Tests               | ✅      | Optional (no test files present)        |
-| Build               | ✅      | Vite + esbuild production build         |
-| Build Check (again) | ✅      | Redundant verification                  |
-| Check Types (again) | ✅      | Redundant verification                  |
+| Job                 | Status | Notes                                 |
+| ------------------- | ------ | ------------------------------------- |
+| Lint                | ✅     | ESLint + Prettier                     |
+| TypeCheck           | ✅     | 0 TypeScript errors                   |
+| Schema Validation   | ✅     | Drizzle schema generates successfully |
+| Security Audit      | ✅     | No critical vulnerabilities           |
+| Tests               | ✅     | Optional (no test files present)      |
+| Build               | ✅     | Vite + esbuild production build       |
+| Build Check (again) | ✅     | Redundant verification                |
+| Check Types (again) | ✅     | Redundant verification                |
 
 **All 8 jobs passing** ✅
 
@@ -284,11 +284,11 @@ All aliases configured in:
 
 | Metric              | Value | Status |
 | ------------------- | ----- | ------ |
-| TypeScript Errors   | 0     | ✅      |
-| ESLint Errors       | 0     | ✅      |
-| Prettier Violations | 0     | ✅      |
-| Build Errors        | 0     | ✅      |
-| Runtime Errors      | 0     | ✅      |
+| TypeScript Errors   | 0     | ✅     |
+| ESLint Errors       | 0     | ✅     |
+| Prettier Violations | 0     | ✅     |
+| Build Errors        | 0     | ✅     |
+| Runtime Errors      | 0     | ✅     |
 
 **Git Status:** Clean working tree, all changes committed and pushed
 

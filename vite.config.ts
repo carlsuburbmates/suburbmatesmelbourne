@@ -27,8 +27,12 @@ export default defineConfig({
     host: true,
     allowedHosts: ["localhost", "127.0.0.1"],
     fs: {
-      strict: true,
-      deny: ["**/.*"],
+      strict: false, // Disabled for middleware mode - Express serves the files
+      allow: [
+        path.resolve(import.meta.dirname),
+        path.resolve(import.meta.dirname, "client"),
+        path.resolve(import.meta.dirname, "shared"),
+      ],
     },
   },
 });
