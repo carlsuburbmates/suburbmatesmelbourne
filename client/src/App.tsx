@@ -18,6 +18,7 @@ import { StripeTest } from "./pages/StripeTest";
 import CheckoutEntry from "./pages/Checkout";
 import CheckoutSuccess from "./pages/CheckoutSuccess";
 import CheckoutCancel from "./pages/CheckoutCancel";
+import Orders from "./pages/Orders";
 
 function Router() {
   return (
@@ -35,6 +36,7 @@ function Router() {
       <Route path={"/checkout/:orderId"} component={CheckoutEntry} />
       <Route path={"/checkout/success"} component={CheckoutSuccess} />
       <Route path={"/checkout/cancel"} component={CheckoutCancel} />
+      <Route path={"/orders"} component={Orders} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />
