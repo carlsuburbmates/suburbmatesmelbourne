@@ -23,7 +23,10 @@ import {
 } from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";
 import { productCreateSchema, productUpdateSchema } from "@/lib/schemas/forms";
-import type { ProductCreateInput, ProductUpdateInput } from "@/lib/schemas/forms";
+import type {
+  ProductCreateInput,
+  ProductUpdateInput,
+} from "@/lib/schemas/forms";
 import { X, Save } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -68,7 +71,10 @@ export function ProductForm({
             productId: initialData.id,
             title: initialData.title,
             description: initialData.description || "",
-            price: typeof initialData.price === "string" ? parseFloat(initialData.price) : initialData.price,
+            price:
+              typeof initialData.price === "string"
+                ? parseFloat(initialData.price)
+                : initialData.price,
             category: initialData.category || "",
             kind: initialData.kind,
             fulfillmentMethod: initialData.fulfillmentMethod,
@@ -88,7 +94,9 @@ export function ProductForm({
           },
   });
 
-  const handleSubmit = async (data: ProductCreateInput | ProductUpdateInput) => {
+  const handleSubmit = async (
+    data: ProductCreateInput | ProductUpdateInput
+  ) => {
     onSuccess();
     form.reset();
   };
@@ -112,7 +120,10 @@ export function ProductForm({
 
       <CardContent>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+          <form
+            onSubmit={form.handleSubmit(handleSubmit)}
+            className="space-y-6"
+          >
             {/* Title */}
             <FormField
               control={form.control}
@@ -164,7 +175,9 @@ export function ProductForm({
                         step="0.01"
                         min="0"
                         {...field}
-                        onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                        onChange={e =>
+                          field.onChange(parseFloat(e.target.value) || 0)
+                        }
                       />
                     </FormControl>
                     <FormMessage />
@@ -179,7 +192,10 @@ export function ProductForm({
                   <FormItem>
                     <FormLabel>Category</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g., Cleaning, IT Support" {...field} />
+                      <Input
+                        placeholder="e.g., Cleaning, IT Support"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -195,7 +211,10 @@ export function ProductForm({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Type *</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select type" />
@@ -218,7 +237,10 @@ export function ProductForm({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Fulfillment *</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select method" />
@@ -249,7 +271,9 @@ export function ProductForm({
                       placeholder="999"
                       min="0"
                       {...field}
-                      onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                      onChange={e =>
+                        field.onChange(parseInt(e.target.value) || 0)
+                      }
                     />
                   </FormControl>
                   <FormDescription>Number of items available</FormDescription>

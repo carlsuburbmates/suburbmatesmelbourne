@@ -1,5 +1,12 @@
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Edit2, Trash2, Package, Truck, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -55,7 +62,7 @@ export function ProductCard({
             src={imageUrl}
             alt={title}
             className="w-full h-full object-cover"
-            onError={(e) => {
+            onError={e => {
               e.currentTarget.parentElement!.style.display = "none";
             }}
           />
@@ -64,14 +71,20 @@ export function ProductCard({
 
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-2 mb-2">
-          <Badge className={cn("capitalize", kindBadgeColor[kind])}>{kind}</Badge>
+          <Badge className={cn("capitalize", kindBadgeColor[kind])}>
+            {kind}
+          </Badge>
           <div className="flex items-center gap-1 text-xs text-gray-600">
             <FulfillmentIcon className="w-3 h-3" />
-            <span className="capitalize">{fulfillmentMethod === "both" ? "Flexible" : fulfillmentMethod}</span>
+            <span className="capitalize">
+              {fulfillmentMethod === "both" ? "Flexible" : fulfillmentMethod}
+            </span>
           </div>
         </div>
         <CardTitle className="text-base line-clamp-2">{title}</CardTitle>
-        {category && <CardDescription className="text-xs">{category}</CardDescription>}
+        {category && (
+          <CardDescription className="text-xs">{category}</CardDescription>
+        )}
       </CardHeader>
 
       <CardContent className="space-y-2 pb-3">
@@ -85,12 +98,17 @@ export function ProductCard({
               ${price.toFixed(2)}
             </p>
             <p className="text-xs text-gray-500">
-              {stockQuantity > 0 ? `${stockQuantity} available` : "Out of stock"}
+              {stockQuantity > 0
+                ? `${stockQuantity} available`
+                : "Out of stock"}
             </p>
           </div>
 
           {stockQuantity <= 5 && stockQuantity > 0 && (
-            <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
+            <Badge
+              variant="outline"
+              className="bg-yellow-50 text-yellow-700 border-yellow-200"
+            >
               Low Stock
             </Badge>
           )}

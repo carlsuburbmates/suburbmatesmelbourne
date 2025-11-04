@@ -13,12 +13,19 @@ interface ProductsListProps {
   isEditable?: boolean;
 }
 
-export function ProductsList({ vendorId, isEditable = false }: ProductsListProps) {
+export function ProductsList({
+  vendorId,
+  isEditable = false,
+}: ProductsListProps) {
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
 
   // Fetch products for the vendor
-  const { data: products, isLoading, error } = trpc.vendor.getProducts.useQuery(
+  const {
+    data: products,
+    isLoading,
+    error,
+  } = trpc.vendor.getProducts.useQuery(
     { vendorId: vendorId || 0 },
     { enabled: !!vendorId }
   );
@@ -31,7 +38,9 @@ export function ProductsList({ vendorId, isEditable = false }: ProductsListProps
     return (
       <Alert variant="destructive">
         <AlertCircle className="h-4 w-4" />
-        <AlertDescription>Failed to load products: {error.message}</AlertDescription>
+        <AlertDescription>
+          Failed to load products: {error.message}
+        </AlertDescription>
       </Alert>
     );
   }
@@ -113,21 +122,27 @@ export function ProductsList({ vendorId, isEditable = false }: ProductsListProps
         </Card>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {products.map((product) => (
+          {products.map(product => (
             <ProductCard
               key={product.id}
               id={product.id}
               title={product.title}
               description={product.description || undefined}
-              price={typeof product.price === "string" ? parseFloat(product.price) : product.price}
+              price={
+                typeof product.price === "string"
+                  ? parseFloat(product.price)
+                  : product.price
+              }
               category={product.category || undefined}
               kind={product.kind as "service" | "product" | "package"}
-              fulfillmentMethod={product.fulfillmentMethod as "pickup" | "delivery" | "both"}
+              fulfillmentMethod={
+                product.fulfillmentMethod as "pickup" | "delivery" | "both"
+              }
               stockQuantity={product.stockQuantity || 0}
               imageUrl={product.imageUrl || undefined}
               onEdit={
                 isEditable
-                  ? (id) => {
+                  ? id => {
                       setEditingId(id);
                       setShowForm(true);
                     }
@@ -135,8 +150,12 @@ export function ProductsList({ vendorId, isEditable = false }: ProductsListProps
               }
               onDelete={
                 isEditable
-                  ? async (id) => {
-                      if (window.confirm("Are you sure you want to delete this product?")) {
+                  ? async id => {
+                      if (
+                        window.confirm(
+                          "Are you sure you want to delete this product?"
+                        )
+                      ) {
                         try {
                           await deleteMutation.mutateAsync({ productId: id });
                         } catch (error) {

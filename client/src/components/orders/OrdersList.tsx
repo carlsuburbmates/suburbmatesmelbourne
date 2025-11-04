@@ -34,16 +34,22 @@ export function OrdersList({ view, vendorId, onViewDetails }: OrdersListProps) {
     { enabled: view === "vendor" && !!vendorId }
   );
 
-  const { data: orders, isLoading, error } = view === "buyer" ? buyerQuery : vendorQuery;
+  const {
+    data: orders,
+    isLoading,
+    error,
+  } = view === "buyer" ? buyerQuery : vendorQuery;
 
   // Filter orders
   const filteredOrders = useMemo(() => {
     if (!orders) return [];
 
     return orders.filter((order: any) => {
-      const statusMatch = statusFilter === "all" || order.status === statusFilter;
+      const statusMatch =
+        statusFilter === "all" || order.status === statusFilter;
       const fulfillmentMatch =
-        fulfillmentFilter === "all" || order.fulfillmentStatus === fulfillmentFilter;
+        fulfillmentFilter === "all" ||
+        order.fulfillmentStatus === fulfillmentFilter;
       return statusMatch && fulfillmentMatch;
     });
   }, [orders, statusFilter, fulfillmentFilter]);
@@ -52,7 +58,9 @@ export function OrdersList({ view, vendorId, onViewDetails }: OrdersListProps) {
     return (
       <Alert variant="destructive">
         <AlertCircle className="h-4 w-4" />
-        <AlertDescription>Failed to load orders: {error.message}</AlertDescription>
+        <AlertDescription>
+          Failed to load orders: {error.message}
+        </AlertDescription>
       </Alert>
     );
   }
@@ -100,7 +108,10 @@ export function OrdersList({ view, vendorId, onViewDetails }: OrdersListProps) {
             </SelectContent>
           </Select>
 
-          <Select value={fulfillmentFilter} onValueChange={setFulfillmentFilter}>
+          <Select
+            value={fulfillmentFilter}
+            onValueChange={setFulfillmentFilter}
+          >
             <SelectTrigger className="w-40">
               <SelectValue />
             </SelectTrigger>
@@ -121,9 +132,7 @@ export function OrdersList({ view, vendorId, onViewDetails }: OrdersListProps) {
           <CardContent className="pt-12 text-center">
             <p className="text-gray-500 mb-4">No orders found</p>
             {view === "buyer" && (
-              <Button variant="outline">
-                Browse Marketplace
-              </Button>
+              <Button variant="outline">Browse Marketplace</Button>
             )}
           </CardContent>
         </Card>
@@ -149,8 +158,10 @@ export function OrdersList({ view, vendorId, onViewDetails }: OrdersListProps) {
       {/* Results Summary */}
       {filteredOrders && filteredOrders.length > 0 && (
         <div className="text-sm text-gray-600 text-center pt-4">
-          Showing {filteredOrders.length} order{filteredOrders.length !== 1 ? "s" : ""}
-          {(statusFilter !== "all" || fulfillmentFilter !== "all") && " (filtered)"}
+          Showing {filteredOrders.length} order
+          {filteredOrders.length !== 1 ? "s" : ""}
+          {(statusFilter !== "all" || fulfillmentFilter !== "all") &&
+            " (filtered)"}
         </div>
       )}
     </div>

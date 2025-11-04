@@ -632,7 +632,9 @@ export const appRouter = router({
           price: z.number().min(0),
           category: z.string().optional(),
           kind: z.enum(["service", "product", "package"]).default("service"),
-          fulfillmentMethod: z.enum(["pickup", "delivery", "both"]).default("both"),
+          fulfillmentMethod: z
+            .enum(["pickup", "delivery", "both"])
+            .default("both"),
           stockQuantity: z.number().int().default(999),
           imageUrl: z.string().optional(),
         })

@@ -86,7 +86,10 @@ export function OrderForm({
 
       <CardContent>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+          <form
+            onSubmit={form.handleSubmit(handleSubmit)}
+            className="space-y-6"
+          >
             {/* Product Info */}
             <div className="bg-gray-50 rounded-lg p-4 space-y-2">
               <h3 className="font-semibold text-sm">{productTitle}</h3>
@@ -108,7 +111,9 @@ export function OrderForm({
                       placeholder="1"
                       min="1"
                       {...field}
-                      onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
+                      onChange={e =>
+                        field.onChange(parseInt(e.target.value) || 1)
+                      }
                     />
                   </FormControl>
                   <FormMessage />
