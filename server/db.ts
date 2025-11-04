@@ -563,10 +563,7 @@ export async function getProductsByVendorId(vendorId: number) {
 export async function updateProduct(productId: number, data: Partial<Product>) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  return await db
-    .update(products)
-    .set(data)
-    .where(eq(products.id, productId));
+  return await db.update(products).set(data).where(eq(products.id, productId));
 }
 
 export async function deactivateProduct(productId: number) {
@@ -635,10 +632,7 @@ export async function updateOrderStatus(
   const updateData: any = { status };
   if (failureReason) updateData.failureReason = failureReason;
   if (status === "completed") updateData.completedAt = new Date();
-  return await db
-    .update(orders)
-    .set(updateData)
-    .where(eq(orders.id, orderId));
+  return await db.update(orders).set(updateData).where(eq(orders.id, orderId));
 }
 
 export async function updateOrderFulfillmentStatus(
@@ -818,7 +812,9 @@ export async function getFeaturedBusinesses(limit = 20, offset = 0) {
   return await db
     .select()
     .from(businesses)
-    .where(and(eq(businesses.isFeatured, true), eq(businesses.status, "active")))
+    .where(
+      and(eq(businesses.isFeatured, true), eq(businesses.status, "active"))
+    )
     .orderBy(desc(businesses.updatedAt))
     .limit(limit)
     .offset(offset);

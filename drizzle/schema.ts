@@ -334,7 +334,11 @@ export const products = mysqlTable(
     kind: mysqlEnum("kind", ["service", "product", "package"])
       .default("service")
       .notNull(),
-    fulfillmentMethod: mysqlEnum("fulfillmentMethod", ["pickup", "delivery", "both"])
+    fulfillmentMethod: mysqlEnum("fulfillmentMethod", [
+      "pickup",
+      "delivery",
+      "both",
+    ])
       .default("both")
       .notNull(),
     stockQuantity: int("stockQuantity").default(999), // 999 = unlimited
@@ -538,19 +542,16 @@ export type InsertDisputeLog = typeof disputeLogs.$inferInsert;
 /**
  * Relations for Phase 4 tables
  */
-export const businessClaimsRelations = relations(
-  businessClaims,
-  ({ one }) => ({
-    business: one(businesses, {
-      fields: [businessClaims.businessId],
-      references: [businesses.id],
-    }),
-    user: one(users, {
-      fields: [businessClaims.userId],
-      references: [users.id],
-    }),
-  })
-);
+export const businessClaimsRelations = relations(businessClaims, ({ one }) => ({
+  business: one(businesses, {
+    fields: [businessClaims.businessId],
+    references: [businesses.id],
+  }),
+  user: one(users, {
+    fields: [businessClaims.userId],
+    references: [users.id],
+  }),
+}));
 
 export const productsRelations = relations(products, ({ many }) => ({
   orders: many(orders),
@@ -566,19 +567,22 @@ export const ordersRelations = relations(orders, ({ one, many }) => ({
   disputes: many(disputeLogs),
 }));
 
-export const refundRequestsRelations = relations(
-  refundRequests,
-  ({ one }) => ({
-    order: one(orders, { fields: [refundRequests.orderId], references: [orders.id] }),
-    buyer: one(users, {
-      fields: [refundRequests.buyerId],
-      references: [users.id],
-    }),
-  })
-);
+export const refundRequestsRelations = relations(refundRequests, ({ one }) => ({
+  order: one(orders, {
+    fields: [refundRequests.orderId],
+    references: [orders.id],
+  }),
+  buyer: one(users, {
+    fields: [refundRequests.buyerId],
+    references: [users.id],
+  }),
+}));
 
 export const disputeLogsRelations = relations(disputeLogs, ({ one }) => ({
-  order: one(orders, { fields: [disputeLogs.orderId], references: [orders.id] }),
+  order: one(orders, {
+    fields: [disputeLogs.orderId],
+    references: [orders.id],
+  }),
   buyer: one(users, {
     fields: [disputeLogs.buyerId],
     references: [users.id],

@@ -21,7 +21,7 @@
 
 | Feature           | Current       | Enhancement Needed                                    | Priority  |
 | ----------------- | ------------- | ----------------------------------------------------- | --------- |
-| Directory Listing | Implemented   | ✅ Retain                                              | —         |
+| Directory Listing | Implemented   | ✅ Retain                                             | —         |
 | Claim Flow        | Manual flag   | Add "Claim this listing" form + OTP/email link        | 🔴 High   |
 | ABN Verification  | Global toggle | Optional + encouraged for owners                      | 🟡 Low    |
 | Owner Dashboard   | None          | `/dashboard/owner` → manage listings & upgrade prompt | 🟠 Medium |
@@ -37,7 +37,7 @@
 | Commission            | Fixed 8 %   | Dynamic 8 % / 6 %                   | 🟠 Add conditional fee calc in checkout. |
 | Product Limit         | Unlimited   | 5 vs 15 listings                    | 🟠 Add server-side limit check.          |
 | Profile Size          | 128 px      | 256 px for Featured                 | 🟢 UI update.                            |
-| Featured Badge        | None        | ⭐ Gold badge                        | 🟡 Add UI token & component.             |
+| Featured Badge        | None        | ⭐ Gold badge                       | 🟡 Add UI token & component.             |
 | Analytics Tab         | Placeholder | Enable for Featured                 | 🟠 Add metrics gate.                     |
 | Promo Posts           | None        | 1 per 7 days                        | 🟠 Create `promotions` table.            |
 | Rank Boost            | Static      | +25 % for Featured                  | 🟠 Adjust search query weight.           |
@@ -49,7 +49,7 @@
 
 | Item               | Current      | Required                             | Gap |
 | ------------------ | ------------ | ------------------------------------ | --- |
-| ABR API            | Exists       | ✅ Retain                             | —   |
+| ABR API            | Exists       | ✅ Retain                            | —   |
 | UI Placement       | Profile only | Add on cards + vendor setup page     | 🟡  |
 | Encouragement Copy | Missing      | "Verify ABN → increase trust" banner | 🟡  |
 
@@ -91,11 +91,11 @@
 
 ## 8️⃣ Compliance & Terms
 
-| Area           | Status          | Gap                                   |    |
-| -------------- | --------------- | ------------------------------------- | -- |
-| Vendor Terms   | Phase 3 present | Update for vendor = fulfilment logic  | 🟠 |
-| Owner Terms    | None            | Draft new section for directory users | 🔴 |
-| Privacy Policy | Phase 1 draft   | Add email logging disclosure          | 🟡 |
+| Area           | Status          | Gap                                   |     |
+| -------------- | --------------- | ------------------------------------- | --- |
+| Vendor Terms   | Phase 3 present | Update for vendor = fulfilment logic  | 🟠  |
+| Owner Terms    | None            | Draft new section for directory users | 🔴  |
+| Privacy Policy | Phase 1 draft   | Add email logging disclosure          | 🟡  |
 
 ---
 
@@ -109,7 +109,7 @@
 | 🟠 P2    | Fulfilment           | Add orders schema + dashboard               |
 | 🟡 P3    | ABN UI               | Add badge and banner                        |
 | 🟡 P3    | Notifications        | Integrate Resend email hooks                |
-| 🟢 P4    | Tier Visuals         | Larger photos + ⭐ badge + rank boost        |
+| 🟢 P4    | Tier Visuals         | Larger photos + ⭐ badge + rank boost       |
 
 ---
 
@@ -128,4 +128,5 @@
 ---
 
 ### ✅ Next Step
+
 Write and lock this implementation plan into Phase 4 structure.
