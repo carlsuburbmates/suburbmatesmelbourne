@@ -8,7 +8,7 @@ import { TRPCError } from "@trpc/server";
 import { trackBusinessCreated } from "./_core/notification";
 import { logConsent } from "./_core/dataApi";
 import crypto from "crypto";
-import { createOrderPaymentIntent } from "./integrations/stripe";
+import { createOrderPaymentIntent, createOrderCheckoutSession } from "./integrations/stripe";
 
 export const appRouter = router({
   system: systemRouter,
@@ -1161,7 +1161,72 @@ export const appRouter = router({
   // ============ CHECKOUT ROUTER ============
   checkout: router({
     /**
-     * Create a payment intent for an order (buyer only)
+     * Create a Stripe Checkout Session for an order (buyer only)
+     * Returns a redirect URL to complete payment on Stripe
+     */
+    createCheckoutSession: protectedProcedure
+      .input(
+        z.object({
+          orderId: z.number(),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        // Verify order exists and belongs to buyer
+        const order = await db.getOrderById(input.orderId);
+        if (!order) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Order not found",
+          });
+        }
+
+        if (order.buyerId !== ctx.user.id) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "Can only pay for your own orders",
+          });
+        }
+
+        if (order.status !== "pending") {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Order is not in pending status",
+          });
+        }
+
+        // Get user email for receipt
+        const user = await db.getUserById(ctx.user.id);
+        if (!user) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "User not found",
+          });
+        }
+
+        // Get vendor's Stripe Connect account if available
+        const vendor = await db.getVendorMeta(order.vendorId);
+        const stripeConnectAccountId =
+          vendor?.stripeConnectAccountId || undefined;
+
+        try {
+          return await createOrderCheckoutSession(
+            order.id,
+            order.totalCents,
+            user.email || "",
+            user.name || "",
+            stripeConnectAccountId
+          );
+        } catch (error) {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: `Failed to create checkout: ${error instanceof Error ? error.message : "Unknown error"}`,
+          });
+        }
+      }),
+
+    /**
+     * Create a payment intent for an order (buyer only) - Alternative to Checkout Session
+     * @deprecated Use createCheckoutSession instead for redirect-based checkout
      */
     createPaymentIntent: protectedProcedure
       .input(

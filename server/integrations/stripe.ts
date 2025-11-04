@@ -69,6 +69,76 @@ export async function createOrderPaymentIntent(
 }
 
 /**
+ * Create a Stripe Checkout session for an order
+ * Returns a redirect URL for the user to complete payment
+ */
+export async function createOrderCheckoutSession(
+  orderId: number,
+  amountInCents: number,
+  buyerEmail: string,
+  buyerName: string,
+  vendorStripeConnectAccountId?: string
+) {
+  try {
+    const successUrl = `${process.env.VITE_APP_URL || "http://localhost:5173"}/checkout/success?orderId=${orderId}&sessionId={CHECKOUT_SESSION_ID}`;
+    const cancelUrl = `${process.env.VITE_APP_URL || "http://localhost:5173"}/checkout/cancel?orderId=${orderId}`;
+
+    const session = await stripe.checkout.sessions.create(
+      {
+        payment_method_types: ["card"],
+        line_items: [
+          {
+            price_data: {
+              currency: "aud",
+              product_data: {
+                name: `Suburbmates Order #${orderId}`,
+                description: "Marketplace order payment",
+              },
+              unit_amount: amountInCents,
+            },
+            quantity: 1,
+          },
+        ],
+        mode: "payment",
+        success_url: successUrl,
+        cancel_url: cancelUrl,
+        customer_email: buyerEmail,
+        metadata: {
+          orderId: String(orderId),
+          type: "order",
+        },
+        payment_intent_data: {
+          metadata: {
+            orderId: String(orderId),
+            type: "order",
+          },
+        },
+      },
+      vendorStripeConnectAccountId
+        ? {
+            stripeAccount: vendorStripeConnectAccountId,
+          }
+        : {}
+    );
+
+    return {
+      success: true,
+      sessionId: session.id,
+      url: session.url,
+      clientSecret:
+        typeof session.payment_intent === "object"
+          ? session.payment_intent?.client_secret
+          : undefined,
+    };
+  } catch (error) {
+    console.error("Failed to create order checkout session:", error);
+    throw new Error(
+      `Checkout creation failed: ${error instanceof Error ? error.message : "Unknown error"}`
+    );
+  }
+}
+
+/**
  * Retrieve payment intent details
  */
 export async function getPaymentIntent(
