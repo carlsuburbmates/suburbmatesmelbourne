@@ -11,6 +11,21 @@ import {
   vendorsMeta,
   InsertVendorMeta,
   VendorMeta,
+  businessClaims,
+  InsertBusinessClaim,
+  BusinessClaim,
+  products,
+  InsertProduct,
+  Product,
+  orders,
+  InsertOrder,
+  Order,
+  refundRequests,
+  InsertRefundRequest,
+  RefundRequest,
+  disputeLogs,
+  InsertDisputeLog,
+  DisputeLog,
 } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
@@ -447,4 +462,409 @@ export async function getBusinessesByRegion(
     .where(eq(melbournSuburbs.region, region))
     .limit(limit)
     .offset(offset);
+}
+
+// ============ PHASE 4: BUSINESS CLAIMS QUERIES ============
+
+export async function createBusinessClaim(data: InsertBusinessClaim) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return await db.insert(businessClaims).values(data);
+}
+
+export async function getBusinessClaimById(claimId: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db
+    .select()
+    .from(businessClaims)
+    .where(eq(businessClaims.id, claimId));
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function getBusinessClaimsByBusinessId(businessId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return await db
+    .select()
+    .from(businessClaims)
+    .where(eq(businessClaims.businessId, businessId))
+    .orderBy(desc(businessClaims.createdAt));
+}
+
+export async function getActiveBusinessClaim(businessId: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db
+    .select()
+    .from(businessClaims)
+    .where(
+      and(
+        eq(businessClaims.businessId, businessId),
+        eq(businessClaims.status, "pending")
+      )
+    )
+    .limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function updateBusinessClaimStatus(
+  claimId: number,
+  status: "pending" | "approved" | "claimed" | "rejected",
+  approvedAt?: Date
+) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const updateData: any = { status };
+  if (approvedAt) updateData.approvedAt = approvedAt;
+  return await db
+    .update(businessClaims)
+    .set(updateData)
+    .where(eq(businessClaims.id, claimId));
+}
+
+export async function updateBusinessClaimClaimed(claimId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return await db
+    .update(businessClaims)
+    .set({ status: "claimed", claimedAt: new Date() })
+    .where(eq(businessClaims.id, claimId));
+}
+
+// ============ PHASE 4: PRODUCTS QUERIES ============
+
+export async function createProduct(data: InsertProduct) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return await db.insert(products).values(data);
+}
+
+export async function getProductById(productId: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db
+    .select()
+    .from(products)
+    .where(eq(products.id, productId));
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function getProductsByVendorId(vendorId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return await db
+    .select()
+    .from(products)
+    .where(and(eq(products.vendorId, vendorId), eq(products.isActive, true)))
+    .orderBy(desc(products.createdAt));
+}
+
+export async function updateProduct(productId: number, data: Partial<Product>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return await db
+    .update(products)
+    .set(data)
+    .where(eq(products.id, productId));
+}
+
+export async function deactivateProduct(productId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return await db
+    .update(products)
+    .set({ isActive: false })
+    .where(eq(products.id, productId));
+}
+
+// ============ PHASE 4: ORDERS QUERIES ============
+
+export async function createOrder(data: InsertOrder) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return await db.insert(orders).values(data);
+}
+
+export async function getOrderById(orderId: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(orders).where(eq(orders.id, orderId));
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function getOrdersByBuyerId(buyerId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return await db
+    .select()
+    .from(orders)
+    .where(eq(orders.buyerId, buyerId))
+    .orderBy(desc(orders.createdAt));
+}
+
+export async function getOrdersByVendorId(vendorId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return await db
+    .select()
+    .from(orders)
+    .where(eq(orders.vendorId, vendorId))
+    .orderBy(desc(orders.createdAt));
+}
+
+export async function getOrderByStripePaymentIntentId(
+  stripePaymentIntentId: string
+) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db
+    .select()
+    .from(orders)
+    .where(eq(orders.stripePaymentIntentId, stripePaymentIntentId));
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function updateOrderStatus(
+  orderId: number,
+  status: "pending" | "completed" | "failed" | "refunded" | "disputed",
+  failureReason?: string
+) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const updateData: any = { status };
+  if (failureReason) updateData.failureReason = failureReason;
+  if (status === "completed") updateData.completedAt = new Date();
+  return await db
+    .update(orders)
+    .set(updateData)
+    .where(eq(orders.id, orderId));
+}
+
+export async function updateOrderFulfillmentStatus(
+  orderId: number,
+  fulfillmentStatus: "pending" | "ready" | "completed" | "cancelled"
+) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return await db
+    .update(orders)
+    .set({ fulfillmentStatus })
+    .where(eq(orders.id, orderId));
+}
+
+// ============ PHASE 4: REFUND REQUESTS QUERIES ============
+
+export async function createRefundRequest(data: InsertRefundRequest) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return await db.insert(refundRequests).values(data);
+}
+
+export async function getRefundRequestById(refundId: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db
+    .select()
+    .from(refundRequests)
+    .where(eq(refundRequests.id, refundId));
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function getRefundRequestsByOrderId(orderId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return await db
+    .select()
+    .from(refundRequests)
+    .where(eq(refundRequests.orderId, orderId))
+    .orderBy(desc(refundRequests.createdAt));
+}
+
+export async function getRefundRequestsByBuyerId(buyerId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return await db
+    .select()
+    .from(refundRequests)
+    .where(eq(refundRequests.buyerId, buyerId))
+    .orderBy(desc(refundRequests.createdAt));
+}
+
+export async function updateRefundRequestStatus(
+  refundId: number,
+  status: "pending" | "approved" | "rejected" | "processing" | "completed",
+  updatedFields?: {
+    vendorResponse?: string;
+    stripeRefundId?: string;
+    refundAmountCents?: number;
+  }
+) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const updateData: any = { status };
+  if (updatedFields?.vendorResponse)
+    updateData.vendorResponse = updatedFields.vendorResponse;
+  if (updatedFields?.stripeRefundId)
+    updateData.stripeRefundId = updatedFields.stripeRefundId;
+  if (updatedFields?.refundAmountCents)
+    updateData.refundAmountCents = updatedFields.refundAmountCents;
+  if (status === "completed") updateData.processedAt = new Date();
+  if (status === "approved" || status === "rejected")
+    updateData.respondedAt = new Date();
+  return await db
+    .update(refundRequests)
+    .set(updateData)
+    .where(eq(refundRequests.id, refundId));
+}
+
+// ============ PHASE 4: DISPUTE LOGS QUERIES ============
+
+export async function createDisputeLog(data: InsertDisputeLog) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return await db.insert(disputeLogs).values(data);
+}
+
+export async function getDisputeLogById(disputeId: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db
+    .select()
+    .from(disputeLogs)
+    .where(eq(disputeLogs.id, disputeId));
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function getDisputeLogsByOrderId(orderId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return await db
+    .select()
+    .from(disputeLogs)
+    .where(eq(disputeLogs.orderId, orderId))
+    .orderBy(desc(disputeLogs.createdAt));
+}
+
+export async function getOpenDisputes() {
+  const db = await getDb();
+  if (!db) return [];
+  return await db
+    .select()
+    .from(disputeLogs)
+    .where(eq(disputeLogs.status, "open"))
+    .orderBy(desc(disputeLogs.createdAt));
+}
+
+export async function updateDisputeLogStatus(
+  disputeId: number,
+  status: "open" | "under_review" | "resolved" | "escalated",
+  updatedFields?: {
+    adminDecision?: string;
+    resolutionStatus?: "buyer_refund" | "vendor_keeps" | "split";
+    decidedBy?: number;
+  }
+) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const updateData: any = { status };
+  if (updatedFields?.adminDecision)
+    updateData.adminDecision = updatedFields.adminDecision;
+  if (updatedFields?.resolutionStatus)
+    updateData.resolutionStatus = updatedFields.resolutionStatus;
+  if (updatedFields?.decidedBy) updateData.decidedBy = updatedFields.decidedBy;
+  if (status === "resolved") updateData.decidedAt = new Date();
+  return await db
+    .update(disputeLogs)
+    .set(updateData)
+    .where(eq(disputeLogs.id, disputeId));
+}
+
+// ============ PHASE 4: BUSINESS EXTENSIONS QUERIES ============
+
+export async function updateBusinessVendorTier(
+  businessId: number,
+  vendorTier: "none" | "basic" | "featured",
+  vendorTierExpiresAt?: Date
+) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const updateData: any = { vendorTier };
+  if (vendorTierExpiresAt) updateData.vendorTierExpiresAt = vendorTierExpiresAt;
+  return await db
+    .update(businesses)
+    .set(updateData)
+    .where(eq(businesses.id, businessId));
+}
+
+export async function updateBusinessFeaturedStatus(
+  businessId: number,
+  isFeatured: boolean,
+  featuredUntil?: Date
+) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const updateData: any = { isFeatured };
+  if (featuredUntil) updateData.featuredUntil = featuredUntil;
+  return await db
+    .update(businesses)
+    .set(updateData)
+    .where(eq(businesses.id, businessId));
+}
+
+export async function getFeaturedBusinesses(limit = 20, offset = 0) {
+  const db = await getDb();
+  if (!db) return [];
+  return await db
+    .select()
+    .from(businesses)
+    .where(and(eq(businesses.isFeatured, true), eq(businesses.status, "active")))
+    .orderBy(desc(businesses.updatedAt))
+    .limit(limit)
+    .offset(offset);
+}
+
+// ============ PHASE 4: VENDORS META EXTENSIONS QUERIES ============
+
+export async function updateVendorSubscriptionStatus(
+  vendorId: number,
+  subscriptionStatus: "free" | "basic_active" | "featured_active" | "cancelled",
+  updatedFields?: {
+    stripeConnectAccountId?: string;
+    bankAccountStatus?: "not_connected" | "verified" | "failed";
+    subscriptionRenewsAt?: Date;
+    totalEarningsCents?: number;
+  }
+) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const updateData: any = { subscriptionStatus };
+  if (updatedFields?.stripeConnectAccountId)
+    updateData.stripeConnectAccountId = updatedFields.stripeConnectAccountId;
+  if (updatedFields?.bankAccountStatus)
+    updateData.bankAccountStatus = updatedFields.bankAccountStatus;
+  if (updatedFields?.subscriptionRenewsAt)
+    updateData.subscriptionRenewsAt = updatedFields.subscriptionRenewsAt;
+  if (updatedFields?.totalEarningsCents !== undefined)
+    updateData.totalEarningsCents = updatedFields.totalEarningsCents;
+  return await db
+    .update(vendorsMeta)
+    .set(updateData)
+    .where(eq(vendorsMeta.businessId, vendorId));
+}
+
+export async function incrementVendorEarnings(
+  vendorId: number,
+  amountCents: number
+) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const vendor = await getVendorMeta(vendorId);
+  if (!vendor) throw new Error("Vendor not found");
+  return await db
+    .update(vendorsMeta)
+    .set({
+      totalEarningsCents: (vendor.totalEarningsCents || 0) + amountCents,
+    })
+    .where(eq(vendorsMeta.businessId, vendorId));
 }

@@ -91,6 +91,13 @@ export const businesses = mysqlTable(
     status: mysqlEnum("status", ["active", "inactive", "suspended"])
       .default("active")
       .notNull(),
+    // Phase 4: Vendor tier and featured status
+    vendorTier: mysqlEnum("vendorTier", ["none", "basic", "featured"])
+      .default("none")
+      .notNull(),
+    vendorTierExpiresAt: timestamp("vendorTierExpiresAt"),
+    isFeatured: boolean("isFeatured").default(false).notNull(),
+    featuredUntil: timestamp("featuredUntil"),
     createdAt: timestamp("createdAt").defaultNow().notNull(),
     updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   },
@@ -122,6 +129,25 @@ export const vendorsMeta = mysqlTable(
       .unique(),
     fulfilmentTerms: text("fulfilmentTerms"), // JSON object with pickup/delivery options
     refundPolicyUrl: varchar("refundPolicyUrl", { length: 255 }),
+    // Phase 4: Stripe Connect and subscription management
+    stripeConnectAccountId: varchar("stripeConnectAccountId", { length: 255 }),
+    bankAccountStatus: mysqlEnum("bankAccountStatus", [
+      "not_connected",
+      "verified",
+      "failed",
+    ])
+      .default("not_connected")
+      .notNull(),
+    subscriptionStatus: mysqlEnum("subscriptionStatus", [
+      "free",
+      "basic_active",
+      "featured_active",
+      "cancelled",
+    ])
+      .default("free")
+      .notNull(),
+    subscriptionRenewsAt: timestamp("subscriptionRenewsAt"),
+    totalEarningsCents: int("totalEarningsCents").default(0).notNull(),
     createdAt: timestamp("createdAt").defaultNow().notNull(),
     updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   },
