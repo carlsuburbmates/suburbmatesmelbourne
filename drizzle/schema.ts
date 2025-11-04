@@ -592,3 +592,138 @@ export const disputeLogsRelations = relations(disputeLogs, ({ one }) => ({
     references: [users.id],
   }),
 }));
+
+/**
+ * PHASE 5 SHOPPING CART & NOTIFICATIONS
+ * =====================================
+ */
+
+/**
+ * Shopping cart table - Persistent multi-item cart storage
+ * Items are grouped by user and synced from localStorage
+ */
+export const carts = mysqlTable(
+  "carts",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    userId: int("userId").notNull(),
+    items: text("items").notNull(), // JSON array: [{productId, vendorId, quantity, price, title, imageUrl}]
+    totalCents: int("totalCents").default(0).notNull(), // Total price in cents
+    itemCount: int("itemCount").default(0).notNull(), // Number of unique items
+    expiresAt: timestamp("expiresAt"), // Cart expiry (7 days for abandoned carts)
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  table => ({
+    userIdIdx: index("userIdIdx").on(table.userId),
+    userFk: foreignKey({
+      columns: [table.userId],
+      foreignColumns: [users.id],
+    }),
+  })
+);
+
+export type Cart = typeof carts.$inferSelect;
+export type InsertCart = typeof carts.$inferInsert;
+
+/**
+ * Notifications table - In-app notifications for users
+ * Supports order updates, refunds, claims, and system messages
+ */
+export const notifications = mysqlTable(
+  "notifications",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    userId: int("userId").notNull(),
+    type: mysqlEnum("notificationType", [
+      "order_created",
+      "order_confirmed",
+      "order_completed",
+      "refund_requested",
+      "refund_processed",
+      "claim_submitted",
+      "claim_approved",
+      "dispute_opened",
+      "system",
+    ]).notNull(),
+    title: varchar("title", { length: 255 }).notNull(),
+    message: text("message").notNull(),
+    relatedOrderId: int("relatedOrderId"), // FK to related order (optional)
+    relatedRefundId: int("relatedRefundId"), // FK to related refund (optional)
+    read: boolean("read").default(false).notNull(),
+    actionUrl: varchar("actionUrl", { length: 500 }), // Link to related page
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    readAt: timestamp("readAt"), // When user marked as read
+  },
+  table => ({
+    userIdIdx: index("userIdIdx").on(table.userId),
+    typeIdx: index("typeIdx").on(table.type),
+    readIdx: index("readIdx").on(table.read),
+    userFk: foreignKey({
+      columns: [table.userId],
+      foreignColumns: [users.id],
+    }),
+  })
+);
+
+export type Notification = typeof notifications.$inferSelect;
+export type InsertNotification = typeof notifications.$inferInsert;
+
+/**
+ * Notification preferences table - User settings for notifications
+ */
+export const notificationPreferences = mysqlTable(
+  "notification_preferences",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    userId: int("userId").notNull().unique(),
+    emailOrderUpdates: boolean("emailOrderUpdates").default(true).notNull(),
+    emailRefundUpdates: boolean("emailRefundUpdates").default(true).notNull(),
+    emailSystemNotifications: boolean("emailSystemNotifications")
+      .default(true)
+      .notNull(),
+    inAppOrderUpdates: boolean("inAppOrderUpdates").default(true).notNull(),
+    inAppRefundUpdates: boolean("inAppRefundUpdates").default(true).notNull(),
+    inAppSystemNotifications: boolean("inAppSystemNotifications")
+      .default(true)
+      .notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  table => ({
+    userIdIdx: index("userIdIdx").on(table.userId),
+    userFk: foreignKey({
+      columns: [table.userId],
+      foreignColumns: [users.id],
+    }),
+  })
+);
+
+export type NotificationPreference =
+  typeof notificationPreferences.$inferSelect;
+export type InsertNotificationPreference =
+  typeof notificationPreferences.$inferInsert;
+
+/**
+ * Relations for Phase 5 tables
+ */
+export const cartsRelations = relations(carts, ({ one }) => ({
+  user: one(users, { fields: [carts.userId], references: [users.id] }),
+}));
+
+export const notificationsRelations = relations(notifications, ({ one }) => ({
+  user: one(users, {
+    fields: [notifications.userId],
+    references: [users.id],
+  }),
+}));
+
+export const notificationPreferencesRelations = relations(
+  notificationPreferences,
+  ({ one }) => ({
+    user: one(users, {
+      fields: [notificationPreferences.userId],
+      references: [users.id],
+    }),
+  })
+);
