@@ -22,6 +22,7 @@ import Orders from "./pages/Orders";
 import ClaimBusiness from "./pages/ClaimBusiness";
 import OrderDetail from "./pages/OrderDetail";
 import AdminClaimsPage from "./pages/admin/AdminClaimsPage";
+import AdminDisputesPage from "./pages/admin/AdminDisputesPage";
 
 function Router() {
   return (
@@ -43,6 +44,7 @@ function Router() {
       <Route path={"/orders"} component={Orders} />
       <Route path={"/orders/:orderId"} component={OrderDetail} />
       <Route path={"/admin/claims"} component={AdminClaimsPage} />
+      <Route path={"/admin/disputes"} component={AdminDisputesPage} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />
