@@ -37,7 +37,7 @@ export default function Orders() {
   // Determine which role and orders to display
   const isBuyer = user?.role === "buyer";
   const isVendor = user?.role === "vendor";
-  
+
   useEffect(() => {
     // Vendor IDs can be derived from user context or business metadata
     // For MVP, we assume vendor is set up correctly in system
@@ -101,7 +101,9 @@ export default function Orders() {
             <CardTitle>Authentication Required</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-slate-600 mb-4">Please log in to view your orders.</p>
+            <p className="text-slate-600 mb-4">
+              Please log in to view your orders.
+            </p>
             <Button onClick={() => navigate("/auth")} className="w-full">
               Log In
             </Button>
@@ -119,7 +121,9 @@ export default function Orders() {
             <CardTitle>Access Denied</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-slate-600">Your role does not have access to orders.</p>
+            <p className="text-slate-600">
+              Your role does not have access to orders.
+            </p>
             <Button onClick={() => navigate("/")} className="w-full mt-4">
               Back to Home
             </Button>
@@ -148,7 +152,9 @@ export default function Orders() {
         {orders.length > 0 && (
           <Tabs
             value={selectedStatus || "all"}
-            onValueChange={(value) => setSelectedStatus(value === "all" ? null : value)}
+            onValueChange={value =>
+              setSelectedStatus(value === "all" ? null : value)
+            }
             className="mb-6"
           >
             <TabsList className="grid grid-cols-5 w-full">
@@ -165,7 +171,8 @@ export default function Orders() {
         <Alert className="mb-6 bg-blue-50 border-blue-200 text-blue-900">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
-            Refreshes automatically when you return to this page. Manual refresh available via button.
+            Refreshes automatically when you return to this page. Manual refresh
+            available via button.
           </AlertDescription>
         </Alert>
 
@@ -193,7 +200,7 @@ export default function Orders() {
               isLoading={isLoading}
               error={error}
               onRefresh={() => refetch()}
-              onOrderClick={(orderId) => navigate(`/orders/${orderId}`)}
+              onOrderClick={orderId => navigate(`/orders/${orderId}`)}
               variant={isBuyer ? "buyer" : "vendor"}
               isRefetching={isFetching}
             />

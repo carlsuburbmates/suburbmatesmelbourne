@@ -40,7 +40,10 @@ export function OrderCard({
 
   return (
     <Card
-      className={cn("cursor-pointer transition-all hover:shadow-md", onClick && "hover:bg-slate-50")}
+      className={cn(
+        "cursor-pointer transition-all hover:shadow-md",
+        onClick && "hover:bg-slate-50"
+      )}
       onClick={onClick}
     >
       <CardHeader className="pb-3">
@@ -82,7 +85,7 @@ export function OrderCard({
           <Button
             variant="outline"
             className="w-full mt-2 justify-between"
-            onClick={(e) => {
+            onClick={e => {
               e.stopPropagation();
               onClick();
             }}

@@ -8,7 +8,10 @@ import { TRPCError } from "@trpc/server";
 import { trackBusinessCreated } from "./_core/notification";
 import { logConsent } from "./_core/dataApi";
 import crypto from "crypto";
-import { createOrderPaymentIntent, createOrderCheckoutSession } from "./integrations/stripe";
+import {
+  createOrderPaymentIntent,
+  createOrderCheckoutSession,
+} from "./integrations/stripe";
 
 export const appRouter = router({
   system: systemRouter,
@@ -606,6 +609,138 @@ export const appRouter = router({
 
         const vendor = await db.getVendorMeta(input.vendorId);
         return { business, vendor };
+      }),
+
+    /**
+     * Get products for a vendor (public)
+     */
+    getProducts: publicProcedure
+      .input(z.object({ vendorId: z.number() }))
+      .query(async ({ input }) => {
+        return await db.getProductsByVendorId(input.vendorId);
+      }),
+
+    /**
+     * Create a new product for vendor (vendor only)
+     */
+    createProduct: protectedProcedure
+      .input(
+        z.object({
+          vendorId: z.number(),
+          title: z.string().min(1).max(255),
+          description: z.string().optional(),
+          price: z.number().min(0),
+          category: z.string().optional(),
+          kind: z.enum(["service", "product", "package"]).default("service"),
+          fulfillmentMethod: z.enum(["pickup", "delivery", "both"]).default("both"),
+          stockQuantity: z.number().int().default(999),
+          imageUrl: z.string().optional(),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        // Verify vendor ownership
+        const vendor = await db.getVendorMeta(input.vendorId);
+        if (!vendor) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Vendor not found",
+          });
+        }
+
+        const business = await db.getBusinessById(vendor.businessId);
+        if (business?.ownerId !== ctx.user.id) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "Can only create products for your vendor account",
+          });
+        }
+
+        return await db.createProduct({
+          vendorId: input.vendorId,
+          title: input.title,
+          description: input.description,
+          price: String(input.price),
+          category: input.category,
+          kind: input.kind,
+          fulfillmentMethod: input.fulfillmentMethod,
+          stockQuantity: input.stockQuantity,
+          imageUrl: input.imageUrl,
+          isActive: true,
+        });
+      }),
+
+    /**
+     * Update a product (vendor only)
+     */
+    updateProduct: protectedProcedure
+      .input(
+        z.object({
+          productId: z.number(),
+          title: z.string().optional(),
+          description: z.string().optional(),
+          price: z.number().optional(),
+          category: z.string().optional(),
+          stockQuantity: z.number().optional(),
+          imageUrl: z.string().optional(),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        const product = await db.getProductById(input.productId);
+        if (!product) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Product not found",
+          });
+        }
+
+        // Verify ownership
+        const vendor = await db.getVendorMeta(product.vendorId);
+        const business = await db.getBusinessById(vendor!.businessId);
+        if (business?.ownerId !== ctx.user.id) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "Can only update your own products",
+          });
+        }
+
+        return await db.updateProduct(input.productId, {
+          title: input.title,
+          description: input.description,
+          price: input.price !== undefined ? String(input.price) : undefined,
+          category: input.category,
+          stockQuantity: input.stockQuantity,
+          imageUrl: input.imageUrl,
+        });
+      }),
+
+    /**
+     * Delete a product (vendor only)
+     */
+    deleteProduct: protectedProcedure
+      .input(z.object({ productId: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        const product = await db.getProductById(input.productId);
+        if (!product) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Product not found",
+          });
+        }
+
+        // Verify ownership
+        const vendor = await db.getVendorMeta(product.vendorId);
+        const business = await db.getBusinessById(vendor!.businessId);
+        if (business?.ownerId !== ctx.user.id) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "Can only delete your own products",
+          });
+        }
+
+        // Soft delete by marking inactive
+        return await db.updateProduct(input.productId, {
+          isActive: false,
+        });
       }),
   }),
 

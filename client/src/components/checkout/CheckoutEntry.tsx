@@ -27,21 +27,22 @@ export function CheckoutEntry() {
   );
 
   // Create checkout session mutation
-  const createCheckoutSessionMutation = trpc.checkout.createCheckoutSession.useMutation({
-    onSuccess: (data) => {
-      if (data.url) {
-        setRedirecting(true);
-        // Redirect to Stripe Checkout
-        window.location.href = data.url;
-      } else {
-        setError("No checkout URL received. Please try again.");
-      }
-    },
-    onError: (error) => {
-      setError(`Payment error: ${error.message}`);
-      setRedirecting(false);
-    },
-  });
+  const createCheckoutSessionMutation =
+    trpc.checkout.createCheckoutSession.useMutation({
+      onSuccess: data => {
+        if (data.url) {
+          setRedirecting(true);
+          // Redirect to Stripe Checkout
+          window.location.href = data.url;
+        } else {
+          setError("No checkout URL received. Please try again.");
+        }
+      },
+      onError: error => {
+        setError(`Payment error: ${error.message}`);
+        setRedirecting(false);
+      },
+    });
 
   // Auto-initiate checkout when order is loaded and not pending payment
   useEffect(() => {
@@ -66,7 +67,9 @@ export function CheckoutEntry() {
             <CardTitle>Authentication Required</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-slate-600">Please log in to proceed with checkout.</p>
+            <p className="text-slate-600">
+              Please log in to proceed with checkout.
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -81,7 +84,9 @@ export function CheckoutEntry() {
             <CardTitle>Invalid Order</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-slate-600">No order ID provided. Please try again.</p>
+            <p className="text-slate-600">
+              No order ID provided. Please try again.
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -105,7 +110,9 @@ export function CheckoutEntry() {
               <div className="flex items-center justify-center py-8">
                 <Spinner className="w-8 h-8" />
               </div>
-              <p className="text-center text-slate-600">Loading order details...</p>
+              <p className="text-center text-slate-600">
+                Loading order details...
+              </p>
             </div>
           )}
 
@@ -129,7 +136,8 @@ export function CheckoutEntry() {
               <Alert className="bg-blue-50 border-blue-200 text-blue-900">
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
-                  You will be redirected to Stripe Checkout to complete your payment securely.
+                  You will be redirected to Stripe Checkout to complete your
+                  payment securely.
                 </AlertDescription>
               </Alert>
             </div>
@@ -149,7 +157,9 @@ export function CheckoutEntry() {
               <div className="flex items-center justify-center py-8">
                 <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
               </div>
-              <p className="text-center text-slate-600">Redirecting to Stripe Checkout...</p>
+              <p className="text-center text-slate-600">
+                Redirecting to Stripe Checkout...
+              </p>
             </div>
           )}
 

@@ -53,8 +53,8 @@ export function OrderList({
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
-            {typeof error === "string" 
-              ? error 
+            {typeof error === "string"
+              ? error
               : error?.message || "Failed to load orders"}
           </AlertDescription>
         </Alert>
@@ -89,7 +89,9 @@ export function OrderList({
       {/* Header with last refresh time */}
       <div className="flex items-center justify-between">
         <p className="text-sm text-slate-500">
-          {lastRefresh ? `Last updated: ${lastRefresh.toLocaleTimeString()}` : "Loading..."}
+          {lastRefresh
+            ? `Last updated: ${lastRefresh.toLocaleTimeString()}`
+            : "Loading..."}
         </p>
         <Button
           onClick={onRefresh}
@@ -104,7 +106,7 @@ export function OrderList({
 
       {/* Orders Grid */}
       <div className="grid gap-4">
-        {orders.map((order) => (
+        {orders.map(order => (
           <OrderCard
             key={order.id}
             orderId={order.id}

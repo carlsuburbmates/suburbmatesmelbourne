@@ -19,17 +19,18 @@ export function StripeTest() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-  const createPaymentIntentMutation = trpc.checkout.createPaymentIntent.useMutation({
-    onSuccess: (data) => {
-      setPaymentIntentData(data);
-      setSuccess("✅ Payment intent created successfully!");
-      console.log("Payment Intent Data:", data);
-    },
-    onError: (error) => {
-      setError(`❌ Error: ${error.message}`);
-      console.error("Payment Intent Error:", error);
-    },
-  });
+  const createPaymentIntentMutation =
+    trpc.checkout.createPaymentIntent.useMutation({
+      onSuccess: data => {
+        setPaymentIntentData(data);
+        setSuccess("✅ Payment intent created successfully!");
+        console.log("Payment Intent Data:", data);
+      },
+      onError: error => {
+        setError(`❌ Error: ${error.message}`);
+        console.error("Payment Intent Error:", error);
+      },
+    });
 
   const handleTestCheckout = async () => {
     if (!testOrderId) {
@@ -59,7 +60,9 @@ export function StripeTest() {
             <CardTitle>Stripe Test - Authentication Required</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-slate-600">Please log in to access the Stripe test page.</p>
+            <p className="text-slate-600">
+              Please log in to access the Stripe test page.
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -70,9 +73,12 @@ export function StripeTest() {
     <div className="container max-w-2xl mx-auto py-8">
       <Card>
         <CardHeader className="bg-red-50 border-b">
-          <CardTitle className="text-red-900">🧪 Stripe Checkout Test (Dev Only)</CardTitle>
+          <CardTitle className="text-red-900">
+            🧪 Stripe Checkout Test (Dev Only)
+          </CardTitle>
           <p className="text-sm text-red-700 mt-2">
-            This page is for testing the Stripe Checkout Session integration. Do not use in production.
+            This page is for testing the Stripe Checkout Session integration. Do
+            not use in production.
           </p>
         </CardHeader>
 
@@ -92,12 +98,17 @@ export function StripeTest() {
               <input
                 type="number"
                 value={testOrderId || ""}
-                onChange={(e) => setTestOrderId(e.target.value ? parseInt(e.target.value) : null)}
+                onChange={e =>
+                  setTestOrderId(
+                    e.target.value ? parseInt(e.target.value) : null
+                  )
+                }
                 placeholder="Enter an order ID to test"
                 className="w-full mt-2 px-3 py-2 border rounded-md text-sm"
               />
               <p className="text-xs text-slate-600 mt-1">
-                Enter an order ID that exists in the database and belongs to you (as buyer)
+                Enter an order ID that exists in the database and belongs to you
+                (as buyer)
               </p>
             </div>
 
@@ -142,13 +153,17 @@ export function StripeTest() {
                 <div className="bg-slate-50 p-4 rounded-lg space-y-3 text-xs font-mono max-h-64 overflow-auto">
                   <div>
                     <p className="text-slate-600">Client ID:</p>
-                    <p className="text-slate-900 break-all">{paymentIntentData.clientId}</p>
+                    <p className="text-slate-900 break-all">
+                      {paymentIntentData.clientId}
+                    </p>
                   </div>
 
                   {paymentIntentData.url && (
                     <div>
                       <p className="text-slate-600">Checkout URL:</p>
-                      <p className="text-slate-900 break-all">{paymentIntentData.url}</p>
+                      <p className="text-slate-900 break-all">
+                        {paymentIntentData.url}
+                      </p>
                     </div>
                   )}
 
@@ -170,7 +185,10 @@ export function StripeTest() {
 
               {/* Redirect Button */}
               {paymentIntentData.url && (
-                <Button onClick={handleRedirect} className="w-full bg-emerald-600 hover:bg-emerald-700">
+                <Button
+                  onClick={handleRedirect}
+                  className="w-full bg-emerald-600 hover:bg-emerald-700"
+                >
                   Redirect to Stripe Checkout →
                 </Button>
               )}
@@ -179,7 +197,9 @@ export function StripeTest() {
 
           {/* Documentation */}
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm">
-            <h3 className="font-semibold text-blue-900 mb-2">How to Use This Test Page</h3>
+            <h3 className="font-semibold text-blue-900 mb-2">
+              How to Use This Test Page
+            </h3>
             <ol className="text-blue-900 space-y-1 list-decimal list-inside">
               <li>Create a test order first (via the Orders page or API)</li>
               <li>Copy the order ID</li>
@@ -187,7 +207,10 @@ export function StripeTest() {
               <li>Click "Test Checkout" to create a payment intent</li>
               <li>If successful, you'll see the Stripe Checkout URL</li>
               <li>Click "Redirect to Stripe Checkout" to test the full flow</li>
-              <li>Use Stripe test card: 4242 4242 4242 4242 (exp: any future date, CVC: any 3 digits)</li>
+              <li>
+                Use Stripe test card: 4242 4242 4242 4242 (exp: any future date,
+                CVC: any 3 digits)
+              </li>
             </ol>
           </div>
         </CardContent>

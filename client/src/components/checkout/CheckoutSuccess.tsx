@@ -11,7 +11,9 @@ export function CheckoutSuccess() {
   const [location, navigate] = useLocation();
 
   // Extract query params
-  const searchParams = new URLSearchParams(typeof window !== "undefined" ? window.location.search : "");
+  const searchParams = new URLSearchParams(
+    typeof window !== "undefined" ? window.location.search : ""
+  );
   const orderId = searchParams.get("orderId");
   const sessionId = searchParams.get("sessionId");
 
@@ -24,12 +26,16 @@ export function CheckoutSuccess() {
               <CheckCircle className="w-8 h-8 text-emerald-600" />
             </div>
           </div>
-          <CardTitle className="text-center text-emerald-900">Payment Successful</CardTitle>
+          <CardTitle className="text-center text-emerald-900">
+            Payment Successful
+          </CardTitle>
         </CardHeader>
 
         <CardContent className="pt-6 space-y-6">
           <div className="text-center space-y-2">
-            <p className="text-slate-600">Your payment has been processed successfully.</p>
+            <p className="text-slate-600">
+              Your payment has been processed successfully.
+            </p>
             {orderId && (
               <p className="text-sm text-slate-500">
                 Order #{orderId} has been confirmed.
@@ -38,7 +44,9 @@ export function CheckoutSuccess() {
           </div>
 
           <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4">
-            <p className="text-sm text-emerald-900 font-medium">✓ Payment confirmed</p>
+            <p className="text-sm text-emerald-900 font-medium">
+              ✓ Payment confirmed
+            </p>
             <p className="text-sm text-emerald-700 mt-1">
               You will receive an email confirmation shortly.
             </p>
@@ -63,7 +71,10 @@ export function CheckoutSuccess() {
           <div className="text-center text-xs text-slate-500 border-t pt-4">
             <p>
               Questions? Contact us at{" "}
-              <a href="mailto:support@suburbmates.com" className="text-blue-600 hover:underline">
+              <a
+                href="mailto:support@suburbmates.com"
+                className="text-blue-600 hover:underline"
+              >
                 support@suburbmates.com
               </a>
             </p>

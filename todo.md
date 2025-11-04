@@ -54,7 +54,7 @@
 
 ### Marketplace Data Models
 
-- [ ] Create `listings` table (id, businessId, title, description, price, category, images, status)
+- [x] Create `products` table (id, vendorId, title, description, price, category, kind, fulfillmentMethod, stockQuantity, imageUrl, isActive)
 - [ ] Create `categories` table for product/service organization
 - [ ] Create `reviews` table for ratings and feedback
 - [ ] Create `favorites` table for user saved listings
@@ -63,7 +63,10 @@
 
 - [ ] Build vendor upgrade flow from business_owner to vendor role
 - [ ] Create vendor dashboard with analytics
-- [ ] Implement listing creation and management interface
+- [x] Implement tRPC API endpoints for product CRUD (vendor.getProducts, vendor.createProduct, vendor.updateProduct, vendor.deleteProduct)
+- [x] Create ProductForm component for creating/editing products
+- [x] Create ProductCard component for displaying products
+- [x] Create ProductsList component for managing vendor products
 - [ ] Build inventory management system
 - [ ] Create vendor communication interface
 

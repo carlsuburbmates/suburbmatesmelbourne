@@ -4,7 +4,12 @@ import { cn } from "@/lib/utils";
 type OrderStatus = "pending" | "completed" | "failed" | "refunded" | "disputed";
 type ClaimStatus = "pending" | "approved" | "rejected" | "claimed";
 type FulfillmentStatus = "pending" | "ready" | "completed" | "cancelled";
-type RefundStatus = "pending" | "approved" | "rejected" | "processing" | "completed";
+type RefundStatus =
+  | "pending"
+  | "approved"
+  | "rejected"
+  | "processing"
+  | "completed";
 
 type StatusType = OrderStatus | ClaimStatus | FulfillmentStatus | RefundStatus;
 

@@ -3,7 +3,10 @@ import { z } from "zod";
 // ============ PRODUCT SCHEMAS ============
 export const productCreateSchema = z.object({
   vendorId: z.number().int(),
-  title: z.string().min(1, "Title is required").max(255, "Title must be less than 255 characters"),
+  title: z
+    .string()
+    .min(1, "Title is required")
+    .max(255, "Title must be less than 255 characters"),
   description: z.string().optional(),
   price: z.number().min(0, "Price must be positive"),
   category: z.string().optional(),
@@ -54,4 +57,6 @@ export const checkoutPaymentIntentSchema = z.object({
   orderId: z.number().int(),
 });
 
-export type CheckoutPaymentIntentInput = z.infer<typeof checkoutPaymentIntentSchema>;
+export type CheckoutPaymentIntentInput = z.infer<
+  typeof checkoutPaymentIntentSchema
+>;
