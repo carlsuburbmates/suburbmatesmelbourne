@@ -15,12 +15,10 @@ export function ClaimForm({ businessId, onSuccess }: ClaimFormProps) {
 
   const requestMutation = trpc.claim.request.useMutation({
     onSuccess: () => {
-      toast.success(
-        "Claim submitted successfully! We'll review it shortly."
-      );
+      toast.success("Claim submitted successfully! We'll review it shortly.");
       onSuccess?.();
     },
-    onError: (error) => {
+    onError: error => {
       toast.error(error.message || "Failed to submit claim");
     },
   });
@@ -43,15 +41,15 @@ export function ClaimForm({ businessId, onSuccess }: ClaimFormProps) {
         <AlertDescription className="text-blue-800">
           <p className="font-semibold">Verification Required</p>
           <p className="text-sm mt-1">
-            After submitting your claim, our team will contact you to verify your
-            ownership of this business.
+            After submitting your claim, our team will contact you to verify
+            your ownership of this business.
           </p>
         </AlertDescription>
       </Alert>
 
       <p className="text-sm text-muted-foreground">
-        Submit your claim to begin the verification process. We'll contact you at
-        the email associated with your account.
+        Submit your claim to begin the verification process. We'll contact you
+        at the email associated with your account.
       </p>
 
       <Button

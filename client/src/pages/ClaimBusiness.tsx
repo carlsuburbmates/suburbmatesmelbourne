@@ -174,7 +174,9 @@ export default function ClaimBusiness() {
           {/* About Section */}
           <Card className="border-amber-200 bg-amber-50">
             <CardHeader>
-              <CardTitle className="text-base">What does claiming mean?</CardTitle>
+              <CardTitle className="text-base">
+                What does claiming mean?
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-2 text-sm text-amber-900">
               <p>

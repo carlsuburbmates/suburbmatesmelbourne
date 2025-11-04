@@ -7,7 +7,10 @@ import { Separator } from "@/components/ui/separator";
 import { AlertCircle, ArrowLeft } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
-import { OrderTimeline, type TimelineEvent } from "@/components/orders/OrderTimeline";
+import {
+  OrderTimeline,
+  type TimelineEvent,
+} from "@/components/orders/OrderTimeline";
 import { RefundRequestForm } from "@/components/orders/RefundRequestForm";
 import { StatusBadge } from "@/components/StatusBadge";
 
@@ -17,7 +20,11 @@ export default function OrderDetail() {
   const { user } = useAuth();
   const orderId = params?.orderId ? parseInt(params.orderId) : null;
 
-  const { data: order, isLoading, error } = trpc.order.getById.useQuery(
+  const {
+    data: order,
+    isLoading,
+    error,
+  } = trpc.order.getById.useQuery(
     { orderId: orderId! },
     { enabled: !!orderId }
   );
@@ -65,7 +72,9 @@ export default function OrderDetail() {
           </CardHeader>
           <CardContent>
             <p className="text-muted-foreground mb-4">
-              {error ? error.message : "The order you're looking for doesn't exist."}
+              {error
+                ? error.message
+                : "The order you're looking for doesn't exist."}
             </p>
             <Button
               variant="outline"
@@ -208,14 +217,18 @@ export default function OrderDetail() {
                       <Separator />
                       <div className="flex justify-between text-sm">
                         <span>Platform Fee (8%)</span>
-                        <span>${(order.platformFeeCents / 100).toFixed(2)}</span>
+                        <span>
+                          ${(order.platformFeeCents / 100).toFixed(2)}
+                        </span>
                       </div>
                       {order.stripeFeesCents && order.stripeFeesCents > 0 && (
                         <>
                           <Separator />
                           <div className="flex justify-between text-sm">
                             <span>Payment Processing Fee</span>
-                            <span>${(order.stripeFeesCents / 100).toFixed(2)}</span>
+                            <span>
+                              ${(order.stripeFeesCents / 100).toFixed(2)}
+                            </span>
                           </div>
                         </>
                       )}
@@ -282,9 +295,10 @@ export default function OrderDetail() {
                 <AlertDescription className="text-amber-900">
                   <p className="font-semibold">Important</p>
                   <p className="text-sm mt-1">
-                    Orders are fulfilled directly by the vendor. Suburbmates does
-                    not deliver items or issue refunds. The vendor is responsible
-                    for fulfilling your order and handling any refund requests.
+                    Orders are fulfilled directly by the vendor. Suburbmates
+                    does not deliver items or issue refunds. The vendor is
+                    responsible for fulfilling your order and handling any
+                    refund requests.
                   </p>
                 </AlertDescription>
               </Alert>

@@ -51,7 +51,7 @@ export function RefundRequestForm({
       form.reset();
       onSuccess?.();
     },
-    onError: (error) => {
+    onError: error => {
       toast.error(error.message || "Failed to submit refund request");
     },
   });
@@ -129,8 +129,12 @@ export function RefundRequestForm({
                     <SelectItem value="not_as_described">
                       Not as Described
                     </SelectItem>
-                    <SelectItem value="wrong_item">Wrong Item Received</SelectItem>
-                    <SelectItem value="quality_issues">Quality Issues</SelectItem>
+                    <SelectItem value="wrong_item">
+                      Wrong Item Received
+                    </SelectItem>
+                    <SelectItem value="quality_issues">
+                      Quality Issues
+                    </SelectItem>
                     <SelectItem value="other">Other</SelectItem>
                   </SelectContent>
                 </Select>

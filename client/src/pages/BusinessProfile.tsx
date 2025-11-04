@@ -2,7 +2,14 @@ import { useRoute, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Phone, Globe, Clock, CheckCircle, ShieldCheck } from "lucide-react";
+import {
+  MapPin,
+  Phone,
+  Globe,
+  Clock,
+  CheckCircle,
+  ShieldCheck,
+} from "lucide-react";
 import { trpc } from "@/lib/trpc";
 
 export default function BusinessProfile() {
