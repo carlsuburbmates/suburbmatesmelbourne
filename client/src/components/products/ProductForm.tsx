@@ -1,19 +1,14 @@
-import { useEffect } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useState } from "react";
+import { trpc } from "@/lib/trpc";
 import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -21,319 +16,290 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { Spinner } from "@/components/ui/spinner";
-import { productCreateSchema, productUpdateSchema } from "@/lib/schemas/forms";
-import type {
-  ProductCreateInput,
-  ProductUpdateInput,
-} from "@/lib/schemas/forms";
-import { X, Save } from "lucide-react";
-import { cn } from "@/lib/utils";
-
-type ProductKind = "service" | "product" | "package";
-type FulfillmentMethod = "pickup" | "delivery" | "both";
-
-interface Product {
-  id: number;
-  title: string;
-  description?: string | null;
-  price: string | number;
-  category?: string | null;
-  kind: ProductKind;
-  fulfillmentMethod: FulfillmentMethod;
-  stockQuantity: number | null;
-  imageUrl?: string | null;
-}
+import { AlertCircle } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { toast } from "sonner";
 
 interface ProductFormProps {
-  mode: "create" | "edit";
-  initialData?: Product;
-  vendorId?: number;
-  onSuccess: () => void;
-  onCancel: () => void;
-  isLoading?: boolean;
+  vendorId: string;
+  product?: {
+    id: number;
+    title: string;
+    description: string | null;
+    price: string;
+    kind: string;
+    fulfillmentMethod: string;
+    stock?: number;
+  };
+  onSuccess?: () => void;
+  onCancel?: () => void;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 export function ProductForm({
-  mode,
-  initialData,
   vendorId,
+  product,
   onSuccess,
   onCancel,
-  isLoading = false,
+  open = false,
+  onOpenChange,
 }: ProductFormProps) {
-  const schema = mode === "create" ? productCreateSchema : productUpdateSchema;
-  const form = useForm<any>({
-    resolver: zodResolver(schema),
-    defaultValues:
-      mode === "edit" && initialData
-        ? {
-            productId: initialData.id,
-            title: initialData.title,
-            description: initialData.description || "",
-            price:
-              typeof initialData.price === "string"
-                ? parseFloat(initialData.price)
-                : initialData.price,
-            category: initialData.category || "",
-            kind: initialData.kind,
-            fulfillmentMethod: initialData.fulfillmentMethod,
-            stockQuantity: initialData.stockQuantity || 0,
-            imageUrl: initialData.imageUrl || "",
-          }
-        : {
-            vendorId,
-            title: "",
-            description: "",
-            price: 0,
-            category: "",
-            kind: "service",
-            fulfillmentMethod: "both",
-            stockQuantity: 999,
-            imageUrl: "",
-          },
+  const [title, setTitle] = useState<string>(product?.title || "");
+  const [description, setDescription] = useState<string>(product?.description ?? "");
+  const [price, setPrice] = useState<string>(product ? product.price : "");
+  const [kind, setKind] = useState<string>(product?.kind || "product");
+  const [fulfillmentMethod, setFulfillmentMethod] = useState<string>(
+    product?.fulfillmentMethod || "pickup"
+  );
+  const [stock, setStock] = useState<number>(product?.stock || 0);
+  const [tierError, setTierError] = useState<string | null>(null);
+  const queryClient = trpc.useUtils();
+
+  // Check tier limit before allowing create
+  const { data: tierInfo } = trpc.product.checkTierLimit.useQuery(undefined, {
+    enabled: open && !product,
   });
 
-  const handleSubmit = async (
-    data: ProductCreateInput | ProductUpdateInput
-  ) => {
-    onSuccess();
-    form.reset();
+  // Create and update mutations
+  const createMutation = trpc.product.create.useMutation({
+    onSuccess: (data) => {
+      toast.success(`Product "${data.product.title}" created successfully!`);
+      handleOpenChange(false);
+      queryClient.product.listByVendor.invalidate();
+      onSuccess?.();
+    },
+    onError: (error) => {
+      if (error.data?.code === "BAD_REQUEST") {
+        setTierError(error.message);
+      } else {
+        toast.error(error.message || "Failed to create product");
+      }
+    },
+  });
+
+  const updateMutation = trpc.product.update.useMutation({
+    onSuccess: () => {
+      toast.success(`Product updated successfully!`);
+      handleOpenChange(false);
+      queryClient.product.listByVendor.invalidate();
+      onSuccess?.();
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to update product");
+    },
+  });
+
+  const handleOpenChange = (newOpen: boolean) => {
+    onOpenChange?.(newOpen);
+    if (!newOpen) {
+      setTierError(null);
+      setTitle(product?.title || "");
+      setDescription(product?.description ?? "");
+      setPrice(product ? product.price : "");
+      setKind(product?.kind || "product");
+      setFulfillmentMethod(product?.fulfillmentMethod || "pickup");
+      setStock(product?.stock || 0);
+      onCancel?.();
+    }
   };
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      if (product) {
+        await updateMutation.mutateAsync({
+          id: product.id,
+          title,
+          description: description.length > 0 ? description : undefined,
+          price: parseFloat(price) || 0,
+          kind: kind as "service" | "product" | "package",
+          fulfillmentMethod: fulfillmentMethod as
+            | "pickup"
+            | "delivery"
+            | "both",
+          stockQuantity: stock,
+        });
+      } else {
+        await createMutation.mutateAsync({
+          title,
+          description: description.length > 0 ? description : undefined,
+          price: parseFloat(price) || 0,
+          kind: kind as "service" | "product" | "package",
+          fulfillmentMethod: fulfillmentMethod as
+            | "pickup"
+            | "delivery"
+            | "both",
+          stockQuantity: stock,
+        });
+      }
+    } catch {
+      // Error handled by mutation callbacks
+    }
+  };
+
+  const isLoading = createMutation.isPending || updateMutation.isPending;
+  const canCreateProduct = !product && tierInfo?.canAdd;
+
   return (
-    <Card className="w-full">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-        <CardTitle className="text-lg">
-          {mode === "create" ? "Create New Product" : "Edit Product"}
-        </CardTitle>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={onCancel}
-          disabled={isLoading}
-          className="h-8 w-8"
-        >
-          <X className="h-4 w-4" />
-        </Button>
-      </CardHeader>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>
+            {product ? "Edit Product" : "Create New Product"}
+          </DialogTitle>
+          <DialogDescription>
+            {product
+              ? "Update product details below"
+              : "Add a new product to your catalog"}
+          </DialogDescription>
+        </DialogHeader>
 
-      <CardContent>
-        <Form {...form}>
-          <form
-            onSubmit={form.handleSubmit(handleSubmit)}
-            className="space-y-6"
-          >
-            {/* Title */}
-            <FormField
-              control={form.control}
-              name="title"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Product Title *</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Enter product name" {...field} />
-                  </FormControl>
-                  <FormDescription>Maximum 255 characters</FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
+        {tierError && (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{tierError}</AlertDescription>
+          </Alert>
+        )}
+
+        {!product && tierInfo && !canCreateProduct && (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              Product limit reached. Your {tierInfo.tier} tier allows{" "}
+              {tierInfo.limit} products, you have {tierInfo.current}.
+            </AlertDescription>
+          </Alert>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Title */}
+          <div>
+            <label className="text-sm font-medium mb-2 block">
+              Product Title
+            </label>
+            <Input
+              placeholder="e.g., Premium Photography Session"
+              disabled={isLoading || (!product && !canCreateProduct)}
+              autoFocus
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              required
             />
+          </div>
 
-            {/* Description */}
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Description</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="Describe your product or service"
-                      className="resize-none"
-                      rows={3}
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+          {/* Description */}
+          <div>
+            <label className="text-sm font-medium mb-2 block">
+              Description (Optional)
+            </label>
+            <Textarea
+              placeholder="Describe your product or service..."
+              disabled={isLoading || (!product && !canCreateProduct)}
+              className="h-20"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
             />
+            <p className="text-xs text-slate-500 mt-1">
+              {description.length}/500 characters
+            </p>
+          </div>
 
-            {/* Grid: Price + Category */}
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="price"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Price (AUD) *</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        placeholder="0.00"
-                        step="0.01"
-                        min="0"
-                        {...field}
-                        onChange={e =>
-                          field.onChange(parseFloat(e.target.value) || 0)
-                        }
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="category"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Category</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="e.g., Cleaning, IT Support"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            {/* Grid: Kind + Fulfillment Method */}
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="kind"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Type *</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select type" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="service">Service</SelectItem>
-                        <SelectItem value="product">Product</SelectItem>
-                        <SelectItem value="package">Package</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="fulfillmentMethod"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Fulfillment *</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select method" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="pickup">Pickup</SelectItem>
-                        <SelectItem value="delivery">Delivery</SelectItem>
-                        <SelectItem value="both">Both</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            {/* Stock Quantity */}
-            <FormField
-              control={form.control}
-              name="stockQuantity"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Stock Quantity *</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      placeholder="999"
-                      min="0"
-                      {...field}
-                      onChange={e =>
-                        field.onChange(parseInt(e.target.value) || 0)
-                      }
-                    />
-                  </FormControl>
-                  <FormDescription>Number of items available</FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
+          {/* Price */}
+          <div>
+            <label className="text-sm font-medium mb-2 block">Price ($)</label>
+            <Input
+              type="number"
+              step="0.01"
+              placeholder="0.00"
+              disabled={isLoading || (!product && !canCreateProduct)}
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
+              required
             />
+          </div>
 
-            {/* Image URL */}
-            <FormField
-              control={form.control}
-              name="imageUrl"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Image URL</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="url"
-                      placeholder="https://example.com/image.jpg"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormDescription>Optional product image</FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
+          {/* Kind */}
+          <div>
+            <label className="text-sm font-medium mb-2 block">
+              Product Type
+            </label>
+            <Select
+              disabled={isLoading || (!product && !canCreateProduct)}
+              onValueChange={setKind}
+              value={kind}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select type..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="service">Service</SelectItem>
+                <SelectItem value="product">Product</SelectItem>
+                <SelectItem value="package">Package</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Fulfillment Method */}
+          <div>
+            <label className="text-sm font-medium mb-2 block">
+              Fulfillment Method
+            </label>
+            <Select
+              disabled={isLoading || (!product && !canCreateProduct)}
+              onValueChange={setFulfillmentMethod}
+              value={fulfillmentMethod}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select method..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="pickup">Pickup</SelectItem>
+                <SelectItem value="delivery">Delivery</SelectItem>
+                <SelectItem value="both">Pickup & Delivery</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Stock (for Phase 5.9) */}
+          <div>
+            <label className="text-sm font-medium mb-2 block">
+              Stock Count
+            </label>
+            <Input
+              type="number"
+              placeholder="0"
+              disabled={isLoading || (!product && !canCreateProduct)}
+              value={stock}
+              onChange={(e) => setStock(parseInt(e.target.value) || 0)}
             />
+            <p className="text-xs text-slate-500 mt-1">Used for inventory tracking</p>
+          </div>
 
-            {/* Action Buttons */}
-            <div className="flex gap-3 pt-4">
-              <Button
-                type="submit"
-                disabled={isLoading}
-                className="flex-1 bg-emerald-600 hover:bg-emerald-700"
-              >
-                {isLoading ? (
-                  <>
-                    <Spinner className="w-4 h-4 mr-2" />
-                    Saving...
-                  </>
-                ) : (
-                  <>
-                    <Save className="w-4 h-4 mr-2" />
-                    {mode === "create" ? "Create Product" : "Save Changes"}
-                  </>
-                )}
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={onCancel}
-                disabled={isLoading}
-                className="flex-1"
-              >
-                Cancel
-              </Button>
-            </div>
-          </form>
-        </Form>
-      </CardContent>
-    </Card>
+          {/* Form Actions */}
+          <div className="flex gap-3 justify-end pt-4">
+            <Button
+              type="button"
+              variant="outline"
+              disabled={isLoading}
+              onClick={() => handleOpenChange(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              disabled={
+                isLoading || (!product && !canCreateProduct) || !title.trim()
+              }
+            >
+              {isLoading && <Spinner className="mr-2 h-4 w-4" />}
+              {product ? "Update Product" : "Create Product"}
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }
