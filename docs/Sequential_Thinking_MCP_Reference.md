@@ -1,11 +1,13 @@
 # Sequential Thinking MCP Master Document
 
 ## 📍 Location
+
 This master document has been moved to the **global MCP configuration directory** to reflect its IDE-wide scope:
 
 **Path:** `~/.config/mcp/docs/Sequential_Thinking_MCP_Operational_Manual.md`
 
 ## 📖 Access
+
 ```bash
 # View the master document
 cat ~/.config/mcp/docs/Sequential_Thinking_MCP_Operational_Manual.md
@@ -15,6 +17,7 @@ open ~/.config/mcp/docs/Sequential_Thinking_MCP_Operational_Manual.md
 ```
 
 ## 🎯 Why Global?
+
 This document covers the **entire Sequential Thinking MCP ecosystem** that applies to all VS Code workspaces:
 
 - Global system configuration (`~/.config/mcp/`)
@@ -25,6 +28,7 @@ This document covers the **entire Sequential Thinking MCP ecosystem** that appli
 ## 📋 Quick Reference
 
 ### For New Projects
+
 ```bash
 # 1. Create workspace structure
 mkdir -p .vscode docs/decisions
@@ -37,11 +41,13 @@ ln -sf ~/.config/mcp/mcp.json .vscode/mcp.json
 ```
 
 ### Decision Logging Workflow
+
 1. **Reason** with Sequential Thinking MCP in VS Code
 2. **Export** via VS Code tasks: "MCP: Sync Decisions & Commit"
 3. **Reference** generated logs in `docs/decisions/`
 
 ### Maintenance
+
 - **Weekly**: `~/.config/mcp/setup-hardening.sh audit`
 - **Daily**: Automatic trace cleanup (cron job)
 - **Emergency**: See master document troubleshooting section
@@ -55,4 +61,4 @@ ln -sf ~/.config/mcp/mcp.json .vscode/mcp.json
 
 ---
 
-*For complete operational details, refer to the master document at `~/.config/mcp/docs/Sequential_Thinking_MCP_Operational_Manual.md`*"
+_For complete operational details, refer to the master document at `~/.config/mcp/docs/Sequential_Thinking_MCP_Operational_Manual.md`_"
