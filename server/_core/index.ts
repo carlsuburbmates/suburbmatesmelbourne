@@ -1,13 +1,20 @@
-import "dotenv/config";
+import dotenv from "dotenv";
+import path from "path";
 import express from "express";
 import { createServer } from "http";
 import net from "net";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { registerOAuthRoutes } from "./oauth";
-import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
-import stripeWebhookRouter from "../webhooks/stripe";
+
+// Load .env.local first (takes precedence), then .env as fallback
+dotenv.config({ path: path.join(process.cwd(), ".env.local") });
+dotenv.config({ path: path.join(process.cwd(), ".env") });
+
+// Dynamic imports for modules that depend on environment variables
+const appRouterPromise = import("../routers").then(m => m.appRouter);
+const stripeWebhookRouterPromise = import("../webhooks/stripe").then(m => m.default);
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -31,6 +38,11 @@ async function findAvailablePort(startPort: number = 3000): Promise<number> {
 async function startServer() {
   const app = express();
   const server = createServer(app);
+  
+  // Await the dynamic imports
+  const appRouter = await appRouterPromise;
+  const stripeWebhookRouter = await stripeWebhookRouterPromise;
+  
   // Configure body parser with larger size limit for file uploads
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
