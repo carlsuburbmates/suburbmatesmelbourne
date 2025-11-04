@@ -77,6 +77,10 @@
 - [ ] Create checkout flow with order summary
 - [ ] Implement order confirmation and receipt emails
 - [ ] Create payment status tracking
+- [x] Implement tRPC API endpoints for order management (order.getMine, order.getByVendor, order.getById, order.updateFulfillmentStatus)
+- [x] Create OrderForm component for creating orders
+- [x] Create OrdersList component for managing orders (buyer and vendor views)
+- [x] Add order filtering by status and fulfillment status
 
 ### Communication & Notifications
 
