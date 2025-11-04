@@ -21,6 +21,9 @@ import CheckoutCancel from "./pages/CheckoutCancel";
 import Orders from "./pages/Orders";
 import ClaimBusiness from "./pages/ClaimBusiness";
 import OrderDetail from "./pages/OrderDetail";
+import AdminClaimsPage from "./pages/admin/AdminClaimsPage";
+import AdminDisputesPage from "./pages/admin/AdminDisputesPage";
+import VendorRefundResponsePage from "./pages/vendor/VendorRefundResponsePage";
 
 function Router() {
   return (
@@ -41,6 +44,9 @@ function Router() {
       <Route path={"/checkout/cancel"} component={CheckoutCancel} />
       <Route path={"/orders"} component={Orders} />
       <Route path={"/orders/:orderId"} component={OrderDetail} />
+      <Route path={"/admin/claims"} component={AdminClaimsPage} />
+      <Route path={"/admin/disputes"} component={AdminDisputesPage} />
+      <Route path={"/vendor/refunds"} component={VendorRefundResponsePage} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />
