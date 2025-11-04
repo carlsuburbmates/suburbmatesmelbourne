@@ -1,4 +1,5 @@
-# Phase 4 – QA / UAT Checklist  
+# Phase 4 – QA / UAT Checklist
+
 Scope: Vendor Products, Orders, Checkout, Claims, Refund UI
 
 ## 1. Environment Sanity

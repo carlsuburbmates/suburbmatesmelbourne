@@ -1,12 +1,13 @@
-import { useRoute } from "wouter";
+import { useRoute, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Phone, Globe, Clock, CheckCircle } from "lucide-react";
+import { MapPin, Phone, Globe, Clock, CheckCircle, ShieldCheck } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 
 export default function BusinessProfile() {
   const [match, params] = useRoute("/business/:id");
+  const [, navigate] = useLocation();
   const businessId = params?.id ? parseInt(params.id) : null;
 
   const { data: business, isLoading } = trpc.business.getById.useQuery(
@@ -120,6 +121,14 @@ export default function BusinessProfile() {
                   </p>
                 </div>
                 <Button className="w-full">Contact Business</Button>
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => navigate(`/claim/${businessId}`)}
+                >
+                  <ShieldCheck className="h-4 w-4 mr-2" />
+                  Claim This Business
+                </Button>
               </div>
             </Card>
           </div>

@@ -1,4 +1,5 @@
-# Phase 4 – Step 7 Implementation Plan  
+# Phase 4 – Step 7 Implementation Plan
+
 **Scope:** Claims UI, Order Details UI, Refund UI  
 **Status:** Planned, backend assumed ready (claims, orders, refunds tRPC)
 
@@ -19,8 +20,8 @@
    - See that platform does not own fulfillment or refunds.
 
 4. System:
-   - No change to ownership of fulfillment or refunds.  
-   - UI makes vendor responsibility explicit.  
+   - No change to ownership of fulfillment or refunds.
+   - UI makes vendor responsibility explicit.
    - No breaking changes to existing Phase 3–4 flows.
 
 ---

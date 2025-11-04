@@ -1,0 +1,85 @@
+╔═══════════════════════════════════════════════════════════════╗
+║  Sequential Thinking MCP – Global Configuration Active        ║
+║  Status: ✅ Deployed (2025-11-04 17:46 PST)                   ║
+╚═══════════════════════════════════════════════════════════════╝
+
+🎯 QUICK STATUS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Configuration:  Global (IDE-wide, all VS Code workspaces)
+Config File:    ~/.vscode/mcp.json → ~/.config/mcp/mcp.json
+Trace Storage:  ~/.config/mcp/traces/sequential-thinking/
+Retention:      7 days (automated cleanup at 02:00 daily)
+Process:        PID 74492 (active since Mon 12PM)
+Version:        @modelcontextprotocol/server-sequential-thinking@2025.7.1
+
+🔧 HARDENING APPLIED
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ MCP_MAX_THOUGHTS: 100           (cap reasoning depth)
+✅ MCP_MAX_DEPTH: 10                (limit branching levels)
+✅ MCP_TIMEOUT_MS: 600000           (10-minute max per session)
+✅ MCP_COMPRESSION_THRESHOLD: 2000  (compress verbose thoughts)
+✅ MCP_TRACE_DIR: persistent        (all traces saved)
+✅ Directory permissions: 700       (user-only access)
+✅ GDPR compliance: enforced        (consent + retention policy)
+
+📦 INSTALLED COMPONENTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Global:
+  • ~/.config/mcp/mcp.json               (MCP server definitions)
+  • ~/.config/mcp/setup-hardening.sh     (setup/audit/cleanup)
+  • ~/.config/mcp/cleanup-traces.sh      (cron: daily 02:00)
+  • ~/.config/mcp/scripts/mcp-validator.js (trace validator)
+  • ~/.config/mcp/CONSENT.txt            (user consent notice)
+  • ~/.config/mcp/README.md              (full documentation)
+  • ~/.vscode/mcp.json                   (VS Code detection)
+
+Workspace (Suburbmates):
+  • .vscode/mcp.json                     (symlink to global)
+  • docs/decisions/TEMPLATE.md           (decision log template)
+  • docs/MCP_GLOBAL_SETUP.md             (workspace guide)
+
+⚡ QUICK COMMANDS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Health check:
+  ~/.config/mcp/setup-hardening.sh audit
+
+View recent traces:
+  ls -lt ~/.config/mcp/traces/sequential-thinking/ | head -5
+
+Validate trace:
+  node ~/.config/mcp/scripts/mcp-validator.js <trace-file.json>
+
+Force cleanup:
+  ~/.config/mcp/setup-hardening.sh cleanup
+
+View config:
+  cat ~/.config/mcp/mcp.json
+
+Check process:
+  ps aux | grep server-sequential-thinking
+
+View cron schedule:
+  crontab -l
+
+📚 DOCUMENTATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Global:    ~/.config/mcp/README.md (249 lines)
+Workspace: docs/MCP_GLOBAL_SETUP.md (147 lines)
+Consent:   ~/.config/mcp/CONSENT.txt
+Retention: ~/.config/mcp/traces/sequential-thinking/RETENTION_POLICY.txt
+
+🎓 NEXT ACTIONS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Reload VS Code to activate global MCP config
+2. Test Sequential Thinking with complex reasoning task
+3. Verify traces written to trace directory
+4. Create decision logs for architectural decisions
+5. Run weekly audits: ~/.config/mcp/setup-hardening.sh audit
+
+Last updated: 2025-11-04 17:46 PST
