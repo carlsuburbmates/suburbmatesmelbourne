@@ -19,7 +19,10 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ClaimStatsCard, type ClaimStats } from "@/components/admin/ClaimStatsCard";
+import {
+  ClaimStatsCard,
+  type ClaimStats,
+} from "@/components/admin/ClaimStatsCard";
 import { ClaimDetailModal } from "@/components/admin/ClaimDetailModal";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -90,9 +93,12 @@ export default function AdminClaimsPage() {
   // Calculate stats
   const stats: ClaimStats = {
     total: allClaims.length,
-    pending: allClaims.filter((c: ClaimRecord) => c.status === "PENDING").length,
-    approved: allClaims.filter((c: ClaimRecord) => c.status === "APPROVED").length,
-    rejected: allClaims.filter((c: ClaimRecord) => c.status === "REJECTED").length,
+    pending: allClaims.filter((c: ClaimRecord) => c.status === "PENDING")
+      .length,
+    approved: allClaims.filter((c: ClaimRecord) => c.status === "APPROVED")
+      .length,
+    rejected: allClaims.filter((c: ClaimRecord) => c.status === "REJECTED")
+      .length,
   };
 
   // Filter claims by status
@@ -100,7 +106,8 @@ export default function AdminClaimsPage() {
     selectedStatus === "all"
       ? allClaims
       : allClaims.filter(
-          (c: ClaimRecord) => c.status.toLowerCase() === selectedStatus.toLowerCase()
+          (c: ClaimRecord) =>
+            c.status.toLowerCase() === selectedStatus.toLowerCase()
         );
 
   const getStatusBadge = (status: string) => {
@@ -124,7 +131,7 @@ export default function AdminClaimsPage() {
   const handleRefresh = () => {
     // Mock refresh - in real app this would refetch from tRPC
     window.location.reload();
-  };;
+  };
 
   return (
     <DashboardLayout>
@@ -145,7 +152,7 @@ export default function AdminClaimsPage() {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-4 gap-4">
-                {[1, 2, 3, 4].map((i) => (
+                {[1, 2, 3, 4].map(i => (
                   <Skeleton key={i} className="h-20" />
                 ))}
               </div>
@@ -180,14 +187,12 @@ export default function AdminClaimsPage() {
         {/* Claims Table */}
         <Card>
           <CardHeader>
-            <CardTitle>
-              Claims ({filteredClaims.length}) 
-            </CardTitle>
+            <CardTitle>Claims ({filteredClaims.length})</CardTitle>
           </CardHeader>
           <CardContent>
             {claimsLoading ? (
               <div className="space-y-2">
-                {[1, 2, 3, 4, 5].map((i) => (
+                {[1, 2, 3, 4, 5].map(i => (
                   <Skeleton key={i} className="h-12" />
                 ))}
               </div>
@@ -209,7 +214,7 @@ export default function AdminClaimsPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredClaims.map((claim) => (
+                    {filteredClaims.map(claim => (
                       <TableRow key={claim.id}>
                         <TableCell className="font-mono text-sm">
                           #{claim.id}
@@ -220,9 +225,7 @@ export default function AdminClaimsPage() {
                         <TableCell className="font-mono text-sm">
                           {claim.userId}
                         </TableCell>
-                        <TableCell>
-                          {getStatusBadge(claim.status)}
-                        </TableCell>
+                        <TableCell>{getStatusBadge(claim.status)}</TableCell>
                         <TableCell className="text-sm">
                           {new Date(claim.createdAt).toLocaleDateString()}
                         </TableCell>

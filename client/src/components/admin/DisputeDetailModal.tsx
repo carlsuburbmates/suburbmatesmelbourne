@@ -50,7 +50,11 @@ export function DisputeDetailModal({
       case "ESCALATED":
         return <Badge variant="destructive">Escalated</Badge>;
       case "RESOLVED":
-        return <Badge variant="default" className="bg-green-600">Resolved</Badge>;
+        return (
+          <Badge variant="default" className="bg-green-600">
+            Resolved
+          </Badge>
+        );
       default:
         return <Badge variant="secondary">Pending</Badge>;
     }
@@ -140,9 +144,7 @@ export function DisputeDetailModal({
 
               {dispute.evidenceUrl && (
                 <div>
-                  <p className="text-sm text-muted-foreground mb-2">
-                    Evidence
-                  </p>
+                  <p className="text-sm text-muted-foreground mb-2">Evidence</p>
                   <a
                     href={dispute.evidenceUrl}
                     target="_blank"
@@ -155,8 +157,7 @@ export function DisputeDetailModal({
               )}
 
               <div className="text-xs text-muted-foreground pt-2 border-t">
-                Created{" "}
-                {new Date(dispute.createdAt).toLocaleDateString()} at{" "}
+                Created {new Date(dispute.createdAt).toLocaleDateString()} at{" "}
                 {new Date(dispute.createdAt).toLocaleTimeString([], {
                   hour: "2-digit",
                   minute: "2-digit",
@@ -193,7 +194,7 @@ export function DisputeDetailModal({
                   <Textarea
                     placeholder="Explain the resolution or reason for escalation..."
                     value={resolution}
-                    onChange={(e) => setResolution(e.target.value)}
+                    onChange={e => setResolution(e.target.value)}
                     className="mt-2"
                     rows={4}
                   />

@@ -16,7 +16,8 @@ interface DisputeStatsCardProps {
 export function DisputeStatsCard({ stats }: DisputeStatsCardProps) {
   const pendingPercentage = (stats.pending / Math.max(stats.total, 1)) * 100;
   const resolvedPercentage = (stats.resolved / Math.max(stats.total, 1)) * 100;
-  const escalatedPercentage = (stats.escalated / Math.max(stats.total, 1)) * 100;
+  const escalatedPercentage =
+    (stats.escalated / Math.max(stats.total, 1)) * 100;
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -34,7 +35,8 @@ export function DisputeStatsCard({ stats }: DisputeStatsCardProps) {
             </div>
             <Progress value={pendingPercentage} className="h-2" />
             <p className="text-xs text-muted-foreground">
-              {((stats.pending / Math.max(stats.total, 1)) * 100).toFixed(0)}% of total
+              {((stats.pending / Math.max(stats.total, 1)) * 100).toFixed(0)}%
+              of total
             </p>
           </div>
         </CardContent>
@@ -54,7 +56,8 @@ export function DisputeStatsCard({ stats }: DisputeStatsCardProps) {
             </div>
             <Progress value={resolvedPercentage} className="h-2" />
             <p className="text-xs text-muted-foreground">
-              {((stats.resolved / Math.max(stats.total, 1)) * 100).toFixed(0)}% of total
+              {((stats.resolved / Math.max(stats.total, 1)) * 100).toFixed(0)}%
+              of total
             </p>
           </div>
         </CardContent>
@@ -74,7 +77,8 @@ export function DisputeStatsCard({ stats }: DisputeStatsCardProps) {
             </div>
             <Progress value={escalatedPercentage} className="h-2" />
             <p className="text-xs text-muted-foreground">
-              {((stats.escalated / Math.max(stats.total, 1)) * 100).toFixed(0)}% of total
+              {((stats.escalated / Math.max(stats.total, 1)) * 100).toFixed(0)}%
+              of total
             </p>
           </div>
         </CardContent>

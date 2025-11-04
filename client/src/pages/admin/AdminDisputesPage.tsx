@@ -1,17 +1,15 @@
 import DashboardLayout from "@/components/DashboardLayout";
-import { DisputeStatsCard, DisputeStats } from "@/components/admin/DisputeStatsCard";
+import {
+  DisputeStatsCard,
+  DisputeStats,
+} from "@/components/admin/DisputeStatsCard";
 import {
   DisputeDetailModal,
   Dispute,
 } from "@/components/admin/DisputeDetailModal";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useState } from "react";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -134,8 +132,9 @@ export default function AdminDisputesPage() {
       .length,
     resolved: allDisputes.filter((d: DisputeRecord) => d.status === "RESOLVED")
       .length,
-    escalated: allDisputes.filter((d: DisputeRecord) => d.status === "ESCALATED")
-      .length,
+    escalated: allDisputes.filter(
+      (d: DisputeRecord) => d.status === "ESCALATED"
+    ).length,
   };
 
   // Filter disputes by status
@@ -143,7 +142,8 @@ export default function AdminDisputesPage() {
     selectedStatus === "all"
       ? allDisputes
       : allDisputes.filter(
-          (d: DisputeRecord) => d.status.toLowerCase() === selectedStatus.toLowerCase()
+          (d: DisputeRecord) =>
+            d.status.toLowerCase() === selectedStatus.toLowerCase()
         );
 
   const getStatusBadge = (status: string) => {
@@ -151,7 +151,11 @@ export default function AdminDisputesPage() {
       case "ESCALATED":
         return <Badge variant="destructive">Escalated</Badge>;
       case "RESOLVED":
-        return <Badge variant="default" className="bg-green-600">Resolved</Badge>;
+        return (
+          <Badge variant="default" className="bg-green-600">
+            Resolved
+          </Badge>
+        );
       default:
         return <Badge variant="secondary">Pending</Badge>;
     }
@@ -237,14 +241,12 @@ export default function AdminDisputesPage() {
         {/* Disputes Table */}
         <Card>
           <CardHeader>
-            <CardTitle>
-              Disputes ({filteredDisputes.length})
-            </CardTitle>
+            <CardTitle>Disputes ({filteredDisputes.length})</CardTitle>
           </CardHeader>
           <CardContent>
             {disputesLoading ? (
               <div className="space-y-2">
-                {[1, 2, 3, 4, 5].map((i) => (
+                {[1, 2, 3, 4, 5].map(i => (
                   <Skeleton key={i} className="h-12" />
                 ))}
               </div>
@@ -282,12 +284,8 @@ export default function AdminDisputesPage() {
                         <TableCell className="font-mono text-sm">
                           #{dispute.vendorId}
                         </TableCell>
-                        <TableCell>
-                          {getReasonBadge(dispute.reason)}
-                        </TableCell>
-                        <TableCell>
-                          {getStatusBadge(dispute.status)}
-                        </TableCell>
+                        <TableCell>{getReasonBadge(dispute.reason)}</TableCell>
+                        <TableCell>{getStatusBadge(dispute.status)}</TableCell>
                         <TableCell className="text-sm text-muted-foreground">
                           {new Date(dispute.createdAt).toLocaleDateString()}
                         </TableCell>

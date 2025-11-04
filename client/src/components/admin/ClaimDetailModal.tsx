@@ -95,8 +95,10 @@ export function ClaimDetailModal({
   };
 
   const getStatusBadge = (status: string) => {
-    if (status === "APPROVED") return <Badge className="bg-green-600">Approved</Badge>;
-    if (status === "REJECTED") return <Badge variant="destructive">Rejected</Badge>;
+    if (status === "APPROVED")
+      return <Badge className="bg-green-600">Approved</Badge>;
+    if (status === "REJECTED")
+      return <Badge variant="destructive">Rejected</Badge>;
     return <Badge variant="secondary">Pending</Badge>;
   };
 
@@ -163,7 +165,7 @@ export function ClaimDetailModal({
                   <Textarea
                     placeholder="Provide your decision note (verification details, findings, etc.)"
                     value={decisionNote}
-                    onChange={(e) => setDecisionNote(e.target.value)}
+                    onChange={e => setDecisionNote(e.target.value)}
                     className="mt-2"
                     rows={4}
                   />

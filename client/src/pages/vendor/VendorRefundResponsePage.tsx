@@ -5,20 +5,10 @@ import {
 } from "@/components/vendor/VendorRefundResponseForm";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useState } from "react";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AlertCircle, CheckCircle2, XCircle } from "lucide-react";
 
@@ -114,11 +104,11 @@ export default function VendorRefundResponsePage() {
 
   const allRefunds = mockRefunds;
   const pendingRefunds = allRefunds.filter(
-    (r) => r.status === "PENDING_VENDOR_RESPONSE"
+    r => r.status === "PENDING_VENDOR_RESPONSE"
   );
-  const approvedRefunds = allRefunds.filter((r) => r.status === "APPROVED");
-  const rejectedRefunds = allRefunds.filter((r) => r.status === "REJECTED");
-  const refundedRefunds = allRefunds.filter((r) => r.status === "REFUNDED");
+  const approvedRefunds = allRefunds.filter(r => r.status === "APPROVED");
+  const rejectedRefunds = allRefunds.filter(r => r.status === "REJECTED");
+  const refundedRefunds = allRefunds.filter(r => r.status === "REFUNDED");
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -178,7 +168,9 @@ export default function VendorRefundResponsePage() {
                 <p className="text-3xl font-bold text-yellow-600">
                   {pendingRefunds.length}
                 </p>
-                <p className="text-sm text-muted-foreground">Awaiting Response</p>
+                <p className="text-sm text-muted-foreground">
+                  Awaiting Response
+                </p>
               </div>
             </CardContent>
           </Card>
@@ -240,7 +232,7 @@ export default function VendorRefundResponsePage() {
                 </CardContent>
               </Card>
             ) : (
-              pendingRefunds.map((refund) => (
+              pendingRefunds.map(refund => (
                 <VendorRefundResponseForm
                   key={refund.id}
                   refund={refund}
@@ -259,7 +251,7 @@ export default function VendorRefundResponsePage() {
                 </CardContent>
               </Card>
             ) : (
-              approvedRefunds.map((refund) => (
+              approvedRefunds.map(refund => (
                 <Card key={refund.id} className="border-green-200 bg-green-50">
                   <CardHeader>
                     <div className="flex items-center justify-between">
@@ -289,7 +281,7 @@ export default function VendorRefundResponsePage() {
                 </CardContent>
               </Card>
             ) : (
-              rejectedRefunds.map((refund) => (
+              rejectedRefunds.map(refund => (
                 <Card key={refund.id} className="border-red-200 bg-red-50">
                   <CardHeader>
                     <div className="flex items-center justify-between">
@@ -319,7 +311,7 @@ export default function VendorRefundResponsePage() {
                 </CardContent>
               </Card>
             ) : (
-              refundedRefunds.map((refund) => (
+              refundedRefunds.map(refund => (
                 <Card key={refund.id} className="border-blue-200 bg-blue-50">
                   <CardHeader>
                     <div className="flex items-center justify-between">

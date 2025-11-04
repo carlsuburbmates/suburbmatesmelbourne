@@ -99,9 +99,7 @@ export function VendorRefundResponseForm({
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg">
-            Refund Request #{refund.id}
-          </CardTitle>
+          <CardTitle className="text-lg">Refund Request #{refund.id}</CardTitle>
           <Badge variant="outline" className="bg-yellow-50 text-yellow-700">
             Requires Response
           </Badge>
@@ -122,7 +120,9 @@ export function VendorRefundResponseForm({
           </div>
           <div>
             <p className="text-sm text-muted-foreground">Deadline</p>
-            <p className={`font-semibold ${isDeadlinePassed ? "text-red-600" : isDeadlineApproaching ? "text-orange-600" : ""}`}>
+            <p
+              className={`font-semibold ${isDeadlinePassed ? "text-red-600" : isDeadlineApproaching ? "text-orange-600" : ""}`}
+            >
               {daysRemaining > 0 ? `${daysRemaining} days left` : "OVERDUE"}
             </p>
           </div>
@@ -158,12 +158,8 @@ export function VendorRefundResponseForm({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="APPROVE">
-                        Approve Refund
-                      </SelectItem>
-                      <SelectItem value="REJECT">
-                        Reject Refund
-                      </SelectItem>
+                      <SelectItem value="APPROVE">Approve Refund</SelectItem>
+                      <SelectItem value="REJECT">Reject Refund</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormDescription>
