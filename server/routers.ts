@@ -637,6 +637,525 @@ export const appRouter = router({
         );
       }),
   }),
+
+  // ============ PHASE 4: BUSINESS CLAIMS ROUTER ============
+  claim: router({
+    /**
+     * Create a new claim request for an unclaimed business
+     */
+    request: protectedProcedure
+      .input(z.object({ businessId: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        const business = await db.getBusinessById(input.businessId);
+        if (!business) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Business not found",
+          });
+        }
+
+        // Check if already claimed
+        const activeClaim = await db.getActiveBusinessClaim(input.businessId);
+        if (activeClaim) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "A claim is already pending for this business",
+          });
+        }
+
+        const claim = await db.createBusinessClaim({
+          businessId: input.businessId,
+          userId: ctx.user.id,
+          status: "pending",
+        });
+
+        // TODO: Send verification email
+        return claim;
+      }),
+
+    /**
+     * Get claim status by business ID
+     */
+    getStatus: publicProcedure
+      .input(z.object({ businessId: z.number() }))
+      .query(async ({ input }) => {
+        const claims = await db.getBusinessClaimsByBusinessId(input.businessId);
+        return claims.length > 0 ? claims[0] : null;
+      }),
+
+    /**
+     * Approve a business claim (admin only)
+     */
+    approve: protectedProcedure
+      .input(z.object({ claimId: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user.role !== "admin") {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "Only admins can approve claims",
+          });
+        }
+
+        return await db.updateBusinessClaimStatus(
+          input.claimId,
+          "approved",
+          new Date()
+        );
+      }),
+
+    /**
+     * Reject a business claim (admin only)
+     */
+    reject: protectedProcedure
+      .input(z.object({ claimId: z.number(), reason: z.string().optional() }))
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user.role !== "admin") {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "Only admins can reject claims",
+          });
+        }
+
+        return await db.updateBusinessClaimStatus(input.claimId, "rejected");
+      }),
+
+    /**
+     * User confirms claim (after approval)
+     */
+    confirm: protectedProcedure
+      .input(z.object({ claimId: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        const claim = await db.getBusinessClaimById(input.claimId);
+        if (!claim) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Claim not found",
+          });
+        }
+
+        if (claim.userId !== ctx.user.id) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "Can only confirm your own claims",
+          });
+        }
+
+        if (claim.status !== "approved") {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Claim must be approved before confirming",
+          });
+        }
+
+        return await db.updateBusinessClaimClaimed(input.claimId);
+      }),
+  }),
+
+  // ============ PHASE 4: PRODUCTS ROUTER ============
+  product: router({
+    /**
+     * Create a new product (vendor only)
+     */
+    create: protectedProcedure
+      .input(
+        z.object({
+          vendorId: z.number(),
+          title: z.string().min(1).max(255),
+          description: z.string().optional(),
+          price: z.number().min(0),
+          category: z.string().optional(),
+          kind: z.enum(["service", "product", "package"]).default("service"),
+          fulfillmentMethod: z
+            .enum(["pickup", "delivery", "both"])
+            .default("both"),
+          stockQuantity: z.number().int().default(999),
+          imageUrl: z.string().optional(),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        // Verify vendor ownership
+        const vendor = await db.getVendorMeta(input.vendorId);
+        if (!vendor) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Vendor not found",
+          });
+        }
+
+        const business = await db.getBusinessById(vendor.businessId);
+        if (business?.ownerId !== ctx.user.id) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "Can only create products for your vendor account",
+          });
+        }
+
+        return await db.createProduct({
+          vendorId: input.vendorId,
+          title: input.title,
+          description: input.description,
+          price: String(input.price),
+          category: input.category,
+          kind: input.kind,
+          fulfillmentMethod: input.fulfillmentMethod,
+          stockQuantity: input.stockQuantity,
+          imageUrl: input.imageUrl,
+          isActive: true,
+        });
+      }),
+
+    /**
+     * Get product by ID (public)
+     */
+    getById: publicProcedure
+      .input(z.object({ id: z.number() }))
+      .query(async ({ input }) => {
+        return await db.getProductById(input.id);
+      }),
+
+    /**
+     * List products by vendor (public)
+     */
+    listByVendor: publicProcedure
+      .input(z.object({ vendorId: z.number() }))
+      .query(async ({ input }) => {
+        return await db.getProductsByVendorId(input.vendorId);
+      }),
+
+    /**
+     * Update product (vendor only)
+     */
+    update: protectedProcedure
+      .input(
+        z.object({
+          productId: z.number(),
+          title: z.string().optional(),
+          description: z.string().optional(),
+          price: z.number().optional(),
+          stockQuantity: z.number().optional(),
+          imageUrl: z.string().optional(),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        const product = await db.getProductById(input.productId);
+        if (!product) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Product not found",
+          });
+        }
+
+        // Verify ownership
+        const vendor = await db.getVendorMeta(product.vendorId);
+        const business = await db.getBusinessById(vendor!.businessId);
+        if (business?.ownerId !== ctx.user.id) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "Can only update your own products",
+          });
+        }
+
+        return await db.updateProduct(input.productId, {
+          title: input.title,
+          description: input.description,
+          price: input.price !== undefined ? String(input.price) : undefined,
+          stockQuantity: input.stockQuantity,
+          imageUrl: input.imageUrl,
+        });
+      }),
+
+    /**
+     * Deactivate product (vendor only)
+     */
+    deactivate: protectedProcedure
+      .input(z.object({ productId: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        const product = await db.getProductById(input.productId);
+        if (!product) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Product not found",
+          });
+        }
+
+        const vendor = await db.getVendorMeta(product.vendorId);
+        const business = await db.getBusinessById(vendor!.businessId);
+        if (business?.ownerId !== ctx.user.id) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "Can only deactivate your own products",
+          });
+        }
+
+        return await db.deactivateProduct(input.productId);
+      }),
+  }),
+
+  // ============ PHASE 4: ORDERS ROUTER ============
+  order: router({
+    /**
+     * Get orders for current user (as buyer)
+     */
+    getMine: protectedProcedure.query(async ({ ctx }) => {
+      return await db.getOrdersByBuyerId(ctx.user.id);
+    }),
+
+    /**
+     * Get orders for vendor (admin view)
+     */
+    getByVendor: protectedProcedure
+      .input(z.object({ vendorId: z.number() }))
+      .query(async ({ ctx, input }) => {
+        // Verify vendor ownership
+        const vendor = await db.getVendorMeta(input.vendorId);
+        if (!vendor) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Vendor not found",
+          });
+        }
+
+        const business = await db.getBusinessById(vendor.businessId);
+        if (business?.ownerId !== ctx.user.id) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "Can only view your own vendor orders",
+          });
+        }
+
+        return await db.getOrdersByVendorId(input.vendorId);
+      }),
+
+    /**
+     * Get order details
+     */
+    getById: protectedProcedure
+      .input(z.object({ orderId: z.number() }))
+      .query(async ({ ctx, input }) => {
+        const order = await db.getOrderById(input.orderId);
+        if (!order) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Order not found",
+          });
+        }
+
+        // Verify access: buyer or vendor
+        if (order.buyerId !== ctx.user.id && order.vendorId !== ctx.user.id) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "Cannot access this order",
+          });
+        }
+
+        return order;
+      }),
+
+    /**
+     * Update fulfillment status (vendor only)
+     */
+    updateFulfillmentStatus: protectedProcedure
+      .input(
+        z.object({
+          orderId: z.number(),
+          status: z.enum(["pending", "ready", "completed", "cancelled"]),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        const order = await db.getOrderById(input.orderId);
+        if (!order) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Order not found",
+          });
+        }
+
+        if (order.vendorId !== ctx.user.id) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "Only vendor can update fulfillment status",
+          });
+        }
+
+        return await db.updateOrderFulfillmentStatus(
+          input.orderId,
+          input.status
+        );
+      }),
+  }),
+
+  // ============ PHASE 4: REFUND ROUTER ============
+  refund: router({
+    /**
+     * Request a refund (buyer only)
+     */
+    request: protectedProcedure
+      .input(
+        z.object({
+          orderId: z.number(),
+          reason: z.string().min(1),
+          description: z.string().optional(),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        const order = await db.getOrderById(input.orderId);
+        if (!order) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Order not found",
+          });
+        }
+
+        if (order.buyerId !== ctx.user.id) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "Only order buyer can request refund",
+          });
+        }
+
+        return await db.createRefundRequest({
+          orderId: input.orderId,
+          buyerId: ctx.user.id,
+          reason: input.reason,
+          description: input.description,
+          status: "pending",
+        });
+      }),
+
+    /**
+     * Get refund requests for order
+     */
+    getByOrder: publicProcedure
+      .input(z.object({ orderId: z.number() }))
+      .query(async ({ input }) => {
+        return await db.getRefundRequestsByOrderId(input.orderId);
+      }),
+
+    /**
+     * Get refund requests for buyer
+     */
+    getMine: protectedProcedure.query(async ({ ctx }) => {
+      return await db.getRefundRequestsByBuyerId(ctx.user.id);
+    }),
+
+    /**
+     * Update refund request status (vendor/admin only)
+     */
+    updateStatus: protectedProcedure
+      .input(
+        z.object({
+          refundId: z.number(),
+          status: z.enum([
+            "pending",
+            "approved",
+            "rejected",
+            "processing",
+            "completed",
+          ]),
+          vendorResponse: z.string().optional(),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        const refund = await db.getRefundRequestById(input.refundId);
+        if (!refund) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Refund request not found",
+          });
+        }
+
+        if (ctx.user.role !== "admin") {
+          // Vendor can only approve/reject their own products
+          const order = await db.getOrderById(refund.orderId);
+          if (order?.vendorId !== ctx.user.id) {
+            throw new TRPCError({
+              code: "FORBIDDEN",
+              message: "Only vendor or admin can update refund status",
+            });
+          }
+        }
+
+        return await db.updateRefundRequestStatus(
+          input.refundId,
+          input.status,
+          {
+            vendorResponse: input.vendorResponse,
+          }
+        );
+      }),
+  }),
+
+  // ============ PHASE 4: DISPUTES ROUTER ============
+  dispute: router({
+    /**
+     * Get open disputes (admin only)
+     */
+    getOpen: protectedProcedure.query(async ({ ctx }) => {
+      if (ctx.user.role !== "admin") {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Only admins can view open disputes",
+        });
+      }
+
+      return await db.getOpenDisputes();
+    }),
+
+    /**
+     * Get dispute by ID
+     */
+    getById: protectedProcedure
+      .input(z.object({ disputeId: z.number() }))
+      .query(async ({ ctx, input }) => {
+        const dispute = await db.getDisputeLogById(input.disputeId);
+        if (!dispute) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Dispute not found",
+          });
+        }
+
+        // Verify access: buyer, vendor, or admin
+        if (
+          dispute.buyerId !== ctx.user.id &&
+          dispute.vendorId !== ctx.user.id &&
+          ctx.user.role !== "admin"
+        ) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "Cannot access this dispute",
+          });
+        }
+
+        return dispute;
+      }),
+
+    /**
+     * Resolve dispute (admin only)
+     */
+    resolve: protectedProcedure
+      .input(
+        z.object({
+          disputeId: z.number(),
+          decision: z.enum(["buyer_refund", "vendor_keeps", "split"]),
+          adminDecision: z.string(),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user.role !== "admin") {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "Only admins can resolve disputes",
+          });
+        }
+
+        return await db.updateDisputeLogStatus(input.disputeId, "resolved", {
+          resolutionStatus: input.decision,
+          adminDecision: input.adminDecision,
+          decidedBy: ctx.user.id,
+        });
+      }),
+  }),
 });
 
 export type AppRouter = typeof appRouter;
