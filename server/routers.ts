@@ -12,6 +12,8 @@ import {
   createOrderPaymentIntent,
   createOrderCheckoutSession,
 } from "./integrations/stripe";
+import { cartRouter } from "./routers/cart";
+import { notificationsRouter } from "./routers/notifications";
 
 export const appRouter = router({
   system: systemRouter,
@@ -1425,6 +1427,12 @@ export const appRouter = router({
         }
       }),
   }),
+
+  // ============ PHASE 5: CART ROUTER ============
+  cart: cartRouter,
+
+  // ============ PHASE 5: NOTIFICATIONS ROUTER ============
+  notifications: notificationsRouter,
 });
 
 export type AppRouter = typeof appRouter;

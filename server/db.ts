@@ -26,6 +26,12 @@ import {
   disputeLogs,
   InsertDisputeLog,
   DisputeLog,
+  carts,
+  InsertCart,
+  Cart,
+  notifications,
+  InsertNotification,
+  Notification,
 } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
@@ -863,4 +869,119 @@ export async function incrementVendorEarnings(
       totalEarningsCents: (vendor.totalEarningsCents || 0) + amountCents,
     })
     .where(eq(vendorsMeta.businessId, vendorId));
+}
+
+// ============ PHASE 5: CART QUERIES ============
+
+export async function getCartByUserId(userId: number): Promise<Cart | null> {
+  const db = await getDb();
+  if (!db) return null;
+  const [cart] = await db
+    .select()
+    .from(carts)
+    .where(eq(carts.userId, userId))
+    .limit(1);
+  return cart || null;
+}
+
+export async function createOrUpdateCart(
+  userId: number,
+  cartData: { items: string; totalCents: number; itemCount: number }
+): Promise<Cart> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const existing = await getCartByUserId(userId);
+  if (existing) {
+    await db
+      .update(carts)
+      .set(cartData)
+      .where(eq(carts.userId, userId));
+    return (await getCartByUserId(userId))!;
+  }
+
+  const result = await db.insert(carts).values({
+    userId,
+    ...cartData,
+  });
+  return (await getCartByUserId(userId))!;
+}
+
+export async function clearCart(userId: number): Promise<void> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.delete(carts).where(eq(carts.userId, userId));
+}
+
+// ============ PHASE 5: NOTIFICATION QUERIES ============
+
+export async function getNotificationsByUserId(
+  userId: number,
+  limit: number = 20,
+  offset: number = 0
+): Promise<Notification[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return await db
+    .select()
+    .from(notifications)
+    .where(eq(notifications.userId, userId))
+    .orderBy(desc(notifications.createdAt))
+    .limit(limit)
+    .offset(offset);
+}
+
+export async function createNotification(
+  notifData: InsertNotification
+): Promise<Notification> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.insert(notifications).values(notifData);
+
+  // Return the created notification
+  const [created] = await db
+    .select()
+    .from(notifications)
+    .where(
+      and(
+        eq(notifications.userId, notifData.userId),
+        eq(notifications.type, notifData.type)
+      )
+    )
+    .orderBy(desc(notifications.createdAt))
+    .limit(1);
+  return created;
+}
+
+export async function markNotificationAsRead(
+  notificationId: number,
+  userId: number
+): Promise<void> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db
+    .update(notifications)
+    .set({ read: true, readAt: new Date() })
+    .where(
+      and(
+        eq(notifications.id, notificationId),
+        eq(notifications.userId, userId)
+      )
+    );
+}
+
+export async function deleteNotification(
+  notificationId: number,
+  userId: number
+): Promise<void> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db
+    .delete(notifications)
+    .where(
+      and(
+        eq(notifications.id, notificationId),
+        eq(notifications.userId, userId)
+      )
+    );
 }
