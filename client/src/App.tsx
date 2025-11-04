@@ -26,6 +26,7 @@ import AdminClaimsPage from "./pages/admin/AdminClaimsPage";
 import AdminDisputesPage from "./pages/admin/AdminDisputesPage";
 import VendorRefundResponsePage from "./pages/vendor/VendorRefundResponsePage";
 import { CartPage } from "./pages/CartPage";
+import { NotificationCenter } from "./pages/NotificationCenter";
 
 function Router() {
   return (
@@ -36,6 +37,7 @@ function Router() {
       <Route path={"/claim/:businessId"} component={ClaimBusiness} />
       <Route path={"/auth"} component={Auth} />
       <Route path={"/cart"} component={CartPage} />
+      <Route path={"/notifications"} component={NotificationCenter} />
       <Route path={"/dashboard"} component={UserDashboard} />
       <Route path={"/vendor/dashboard"} component={VendorDashboard} />
       <Route path={"/marketplace/vendors"} component={Marketplace} />
