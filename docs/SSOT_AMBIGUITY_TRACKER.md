@@ -63,6 +63,7 @@ Each row must either be **resolved**, **documented**, or **verified** before Pha
 | Background Jobs | Vercel Cron vs self-hosted worker            | 5.3                |
 | Campaign Emails | Platform sender vs vendor sender             | 6.0                |
 | AI Logging      | Create `ai_logs` table schema                | 5.3                |
+| Inventory Sync  | Stripe webhook decrement logic validation    | 5.2 (Phase 5 Step 2) |
 
 ---
 
@@ -74,9 +75,9 @@ Each row must either be **resolved**, **documented**, or **verified** before Pha
 | Integration   |   5   |   🟡 Open  |
 | Governance    |   5   |   🟡 Open  |
 | Human/Process |   4   |   🟡 Open  |
-| Long-Term     |   5   | 🟡 Planned |
+| Long-Term     |   6   | 🟡 Planned |
 
-All 25 items must reach **✅ Resolved** or **🧩 Documented exception** before **Phase 6 tag (v 6.0)**.
+All 26 items must reach **✅ Resolved** or **🧩 Documented exception** before **Phase 6 tag (v 6.0)**.
 
 ---
 
