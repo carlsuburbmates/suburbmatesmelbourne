@@ -3,7 +3,7 @@ import { useCart } from "@/_core/contexts/CartContext";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Link } from "wouter";
 import { CartItemCard } from "@/components/CartItemCard";
-import { CartSummary } from "@/components/CartSummary";
+import { CartCheckout } from "@/components/CartCheckout";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { ShoppingCart } from "lucide-react";
@@ -49,11 +49,6 @@ export const CartPage: React.FC = () => {
     );
   }
 
-  const handleCheckout = () => {
-    // TODO: Implement checkout flow
-    console.log("[Cart] Checkout initiated");
-  };
-
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4">
       <div className="max-w-7xl mx-auto">
@@ -84,7 +79,7 @@ export const CartPage: React.FC = () => {
           </div>
 
           <div>
-            <CartSummary onCheckout={handleCheckout} />
+            <CartCheckout />
           </div>
         </div>
       </div>
