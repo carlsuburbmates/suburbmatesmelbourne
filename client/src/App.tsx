@@ -14,6 +14,7 @@ import VendorDashboard from "./pages/VendorDashboard";
 import { Marketplace } from "./pages/Marketplace";
 import { VendorSetup } from "./pages/VendorSetup";
 import { VendorProfile } from "./pages/VendorProfile";
+import { StripeTest } from "./pages/StripeTest";
 
 function Router() {
   return (
@@ -27,6 +28,7 @@ function Router() {
       <Route path={"/marketplace/vendors"} component={Marketplace} />
       <Route path={"/dashboard/vendor/setup"} component={VendorSetup} />
       <Route path={"/vendor/:vendorId"} component={VendorProfile} />
+      <Route path={"/stripe-test"} component={StripeTest} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />
