@@ -5,6 +5,7 @@ import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ConsentBanner } from "./components/ConsentBanner";
 import { ThemeProvider } from "./contexts/ThemeContext";
+import { CartProvider } from "./_core/contexts/CartContext";
 import Home from "./pages/Home";
 import Directory from "./pages/Directory";
 import BusinessProfile from "./pages/BusinessProfile";
@@ -24,6 +25,7 @@ import OrderDetail from "./pages/OrderDetail";
 import AdminClaimsPage from "./pages/admin/AdminClaimsPage";
 import AdminDisputesPage from "./pages/admin/AdminDisputesPage";
 import VendorRefundResponsePage from "./pages/vendor/VendorRefundResponsePage";
+import { CartPage } from "./pages/CartPage";
 
 function Router() {
   return (
@@ -33,6 +35,7 @@ function Router() {
       <Route path={"/business/:id"} component={BusinessProfile} />
       <Route path={"/claim/:businessId"} component={ClaimBusiness} />
       <Route path={"/auth"} component={Auth} />
+      <Route path={"/cart"} component={CartPage} />
       <Route path={"/dashboard"} component={UserDashboard} />
       <Route path={"/vendor/dashboard"} component={VendorDashboard} />
       <Route path={"/marketplace/vendors"} component={Marketplace} />
@@ -58,11 +61,13 @@ function App() {
   return (
     <ErrorBoundary>
       <ThemeProvider defaultTheme="light">
-        <TooltipProvider>
-          <Toaster />
-          <Router />
-          <ConsentBanner />
-        </TooltipProvider>
+        <CartProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Router />
+            <ConsentBanner />
+          </TooltipProvider>
+        </CartProvider>
       </ThemeProvider>
     </ErrorBoundary>
   );
