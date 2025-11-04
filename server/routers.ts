@@ -14,6 +14,7 @@ import {
 } from "./integrations/stripe";
 import { cartRouter } from "./routers/cart";
 import { notificationsRouter } from "./routers/notifications";
+import { productRouter } from "./routers/product";
 
 export const appRouter = router({
   system: systemRouter,
@@ -619,7 +620,7 @@ export const appRouter = router({
     getProducts: publicProcedure
       .input(z.object({ vendorId: z.number() }))
       .query(async ({ input }) => {
-        return await db.getProductsByVendorId(input.vendorId);
+        return await db.listProductsByVendor(input.vendorId);
       }),
 
     /**
@@ -659,8 +660,7 @@ export const appRouter = router({
           });
         }
 
-        return await db.createProduct({
-          vendorId: input.vendorId,
+        return await db.createProduct(input.vendorId, {
           title: input.title,
           description: input.description,
           price: String(input.price),
@@ -892,144 +892,7 @@ export const appRouter = router({
   }),
 
   // ============ PHASE 4: PRODUCTS ROUTER ============
-  product: router({
-    /**
-     * Create a new product (vendor only)
-     */
-    create: protectedProcedure
-      .input(
-        z.object({
-          vendorId: z.number(),
-          title: z.string().min(1).max(255),
-          description: z.string().optional(),
-          price: z.number().min(0),
-          category: z.string().optional(),
-          kind: z.enum(["service", "product", "package"]).default("service"),
-          fulfillmentMethod: z
-            .enum(["pickup", "delivery", "both"])
-            .default("both"),
-          stockQuantity: z.number().int().default(999),
-          imageUrl: z.string().optional(),
-        })
-      )
-      .mutation(async ({ ctx, input }) => {
-        // Verify vendor ownership
-        const vendor = await db.getVendorMeta(input.vendorId);
-        if (!vendor) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Vendor not found",
-          });
-        }
-
-        const business = await db.getBusinessById(vendor.businessId);
-        if (business?.ownerId !== ctx.user.id) {
-          throw new TRPCError({
-            code: "FORBIDDEN",
-            message: "Can only create products for your vendor account",
-          });
-        }
-
-        return await db.createProduct({
-          vendorId: input.vendorId,
-          title: input.title,
-          description: input.description,
-          price: String(input.price),
-          category: input.category,
-          kind: input.kind,
-          fulfillmentMethod: input.fulfillmentMethod,
-          stockQuantity: input.stockQuantity,
-          imageUrl: input.imageUrl,
-          isActive: true,
-        });
-      }),
-
-    /**
-     * Get product by ID (public)
-     */
-    getById: publicProcedure
-      .input(z.object({ id: z.number() }))
-      .query(async ({ input }) => {
-        return await db.getProductById(input.id);
-      }),
-
-    /**
-     * List products by vendor (public)
-     */
-    listByVendor: publicProcedure
-      .input(z.object({ vendorId: z.number() }))
-      .query(async ({ input }) => {
-        return await db.getProductsByVendorId(input.vendorId);
-      }),
-
-    /**
-     * Update product (vendor only)
-     */
-    update: protectedProcedure
-      .input(
-        z.object({
-          productId: z.number(),
-          title: z.string().optional(),
-          description: z.string().optional(),
-          price: z.number().optional(),
-          stockQuantity: z.number().optional(),
-          imageUrl: z.string().optional(),
-        })
-      )
-      .mutation(async ({ ctx, input }) => {
-        const product = await db.getProductById(input.productId);
-        if (!product) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Product not found",
-          });
-        }
-
-        // Verify ownership
-        const vendor = await db.getVendorMeta(product.vendorId);
-        const business = await db.getBusinessById(vendor!.businessId);
-        if (business?.ownerId !== ctx.user.id) {
-          throw new TRPCError({
-            code: "FORBIDDEN",
-            message: "Can only update your own products",
-          });
-        }
-
-        return await db.updateProduct(input.productId, {
-          title: input.title,
-          description: input.description,
-          price: input.price !== undefined ? String(input.price) : undefined,
-          stockQuantity: input.stockQuantity,
-          imageUrl: input.imageUrl,
-        });
-      }),
-
-    /**
-     * Deactivate product (vendor only)
-     */
-    deactivate: protectedProcedure
-      .input(z.object({ productId: z.number() }))
-      .mutation(async ({ ctx, input }) => {
-        const product = await db.getProductById(input.productId);
-        if (!product) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Product not found",
-          });
-        }
-
-        const vendor = await db.getVendorMeta(product.vendorId);
-        const business = await db.getBusinessById(vendor!.businessId);
-        if (business?.ownerId !== ctx.user.id) {
-          throw new TRPCError({
-            code: "FORBIDDEN",
-            message: "Can only deactivate your own products",
-          });
-        }
-
-        return await db.deactivateProduct(input.productId);
-      }),
-  }),
+  product: productRouter,
 
   // ============ PHASE 4: ORDERS ROUTER ============
   order: router({

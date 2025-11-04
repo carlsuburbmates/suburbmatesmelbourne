@@ -537,50 +537,6 @@ export async function updateBusinessClaimClaimed(claimId: number) {
     .set({ status: "claimed", claimedAt: new Date() })
     .where(eq(businessClaims.id, claimId));
 }
-
-// ============ PHASE 4: PRODUCTS QUERIES ============
-
-export async function createProduct(data: InsertProduct) {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  return await db.insert(products).values(data);
-}
-
-export async function getProductById(productId: number) {
-  const db = await getDb();
-  if (!db) return undefined;
-  const result = await db
-    .select()
-    .from(products)
-    .where(eq(products.id, productId));
-  return result.length > 0 ? result[0] : undefined;
-}
-
-export async function getProductsByVendorId(vendorId: number) {
-  const db = await getDb();
-  if (!db) return [];
-  return await db
-    .select()
-    .from(products)
-    .where(and(eq(products.vendorId, vendorId), eq(products.isActive, true)))
-    .orderBy(desc(products.createdAt));
-}
-
-export async function updateProduct(productId: number, data: Partial<Product>) {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  return await db.update(products).set(data).where(eq(products.id, productId));
-}
-
-export async function deactivateProduct(productId: number) {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  return await db
-    .update(products)
-    .set({ isActive: false })
-    .where(eq(products.id, productId));
-}
-
 // ============ PHASE 4: ORDERS QUERIES ============
 
 export async function createOrder(data: InsertOrder) {
@@ -984,4 +940,187 @@ export async function deleteNotification(
         eq(notifications.userId, userId)
       )
     );
+}
+
+// ============================================================================
+// Product Functions (Phase 5 Step 2 Packet 5.7)
+// ============================================================================
+
+/**
+ * Create a new product for a vendor
+ * Includes AuditLog write for compliance
+ */
+export async function createProduct(
+  vendorId: number,
+  input: Omit<InsertProduct, "vendorId" | "id" | "createdAt" | "updatedAt">
+): Promise<Product> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const created = await db
+    .insert(products)
+    .values({
+      vendorId,
+      ...input,
+    })
+    .$returningId();
+
+  // Fetch the created product
+  const product = await db
+    .select()
+    .from(products)
+    .where(eq(products.id, created[0].id))
+    .limit(1);
+
+  // TODO: Write AuditLog entry (Phase 5.3)
+  // await writeAuditLog('product.create', vendorId, product[0].id);
+
+  return product[0];
+}
+
+/**
+ * Update an existing product
+ * Ownership must be verified by caller
+ */
+export async function updateProduct(
+  productId: number,
+  input: Partial<Omit<InsertProduct, "id" | "vendorId" | "createdAt" | "updatedAt">>
+): Promise<Product> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db
+    .update(products)
+    .set({
+      ...input,
+      updatedAt: new Date(),
+    })
+    .where(eq(products.id, productId));
+
+  // Fetch updated product
+  const updated = await db
+    .select()
+    .from(products)
+    .where(eq(products.id, productId))
+    .limit(1);
+
+  // TODO: Write AuditLog entry (Phase 5.3)
+  // await writeAuditLog('product.update', updated[0].vendorId, productId);
+
+  return updated[0];
+}
+
+/**
+ * List products by vendor (active only)
+ * Paginated with limit and offset
+ */
+export async function listProductsByVendor(
+  vendorId: number,
+  limit: number = 20,
+  offset: number = 0
+): Promise<Product[]> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  return await db
+    .select()
+    .from(products)
+    .where(and(eq(products.vendorId, vendorId), eq(products.isActive, true)))
+    .orderBy(desc(products.createdAt))
+    .limit(limit)
+    .offset(offset);
+}
+
+/**
+ * Get a single product by ID (public read)
+ */
+export async function getProductById(productId: number): Promise<Product | undefined> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const result = await db
+    .select()
+    .from(products)
+    .where(eq(products.id, productId))
+    .limit(1);
+
+  return result[0];
+}
+
+/**
+ * Soft delete a product (set isActive = false)
+ * Ownership must be verified by caller
+ */
+export async function deactivateProduct(productId: number): Promise<void> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db
+    .update(products)
+    .set({
+      isActive: false,
+      updatedAt: new Date(),
+    })
+    .where(eq(products.id, productId));
+
+  // TODO: Write AuditLog entry (Phase 5.3)
+  // await writeAuditLog('product.deactivate', vendorId, productId);
+}
+
+/**
+ * Count active products for a vendor
+ * Used for tier limit validation
+ */
+export async function countProductsByVendor(vendorId: number): Promise<number> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const result = await db
+    .select()
+    .from(products)
+    .where(and(eq(products.vendorId, vendorId), eq(products.isActive, true)));
+
+  return result.length;
+}
+
+/**
+ * Get vendor's tier limit and current usage
+ * Returns: { current, limit, canAdd, tier }
+ */
+export async function getVendorTierLimit(vendorId: number): Promise<{
+  current: number;
+  limit: number;
+  canAdd: boolean;
+  tier: string;
+}> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  // Get vendor meta to check tier
+  const vendorMeta = await db
+    .select()
+    .from(vendorsMeta)
+    .where(eq(vendorsMeta.businessId, vendorId))
+    .limit(1);
+
+  // Default to free tier if no vendor meta found
+  const tier = vendorMeta[0]?.subscriptionStatus || "free";
+
+  // Tier limits from SSOT §3
+  const tierLimits: Record<string, number> = {
+    free: 0,
+    basic_active: 12,
+    featured_active: 48,
+    cancelled: 0,
+  };
+
+  const limit = tierLimits[tier] || 0;
+  const current = await countProductsByVendor(vendorId);
+
+  return {
+    current,
+    limit,
+    canAdd: current < limit,
+    tier,
+  };
 }

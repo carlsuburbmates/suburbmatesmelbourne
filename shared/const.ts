@@ -18,3 +18,18 @@ export const NOTIFICATION_TYPES = [
 ] as const;
 
 export type NotificationType = (typeof NOTIFICATION_TYPES)[number];
+
+// Product tier limits (SSOT §3)
+export const TIER_PRODUCT_LIMITS = {
+  free: 0,
+  basic_active: 12,
+  featured_active: 48,
+  cancelled: 0,
+} as const;
+
+export const PRODUCT_KINDS = ["service", "product", "package"] as const;
+export type ProductKind = (typeof PRODUCT_KINDS)[number];
+
+export const FULFILLMENT_METHODS = ["pickup", "delivery", "both"] as const;
+export type FulfillmentMethod = (typeof FULFILLMENT_METHODS)[number];
+
