@@ -41,7 +41,7 @@ export function Marketplace() {
   );
 
   const handleRegionChange = (region: string) => {
-    setSelectedRegion(region);
+    setSelectedRegion(region === "all" ? "" : region);
     setOffset(0); // Reset pagination
   };
 
@@ -66,12 +66,12 @@ export function Marketplace() {
         {/* Filters */}
         <div className="mb-8 flex gap-4 flex-wrap">
           <div className="flex-1 min-w-[200px]">
-            <Select value={selectedRegion} onValueChange={handleRegionChange}>
+            <Select value={selectedRegion || "all"} onValueChange={handleRegionChange}>
               <SelectTrigger className="bg-white border-emerald-200">
                 <SelectValue placeholder="Filter by region..." />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Regions</SelectItem>
+                <SelectItem value="all">All Regions</SelectItem>
                 {regions
                   .filter((r): r is string => r !== null && r !== undefined)
                   .map(region => (
