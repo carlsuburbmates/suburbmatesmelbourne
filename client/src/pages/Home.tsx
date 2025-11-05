@@ -37,13 +37,34 @@ export default function Home() {
             >
               Browse Directory
             </Button>
+            <Button
+              variant="ghost"
+              onClick={() => {
+                trackEvent("navigation_click", {
+                  destination: "marketplace",
+                  source: "homepage_nav",
+                });
+                setLocation("/marketplace/vendors");
+              }}
+            >
+              Marketplace
+            </Button>
             {isAuthenticated ? (
-              <Button
-                variant="default"
-                onClick={() => setLocation("/dashboard")}
-              >
-                Dashboard
-              </Button>
+              <>
+                <Button
+                  variant="ghost"
+                  onClick={() => setLocation("/cart")}
+                  className="relative"
+                >
+                  Cart
+                </Button>
+                <Button
+                  variant="default"
+                  onClick={() => setLocation("/dashboard")}
+                >
+                  Dashboard
+                </Button>
+              </>
             ) : (
               <Button variant="default" onClick={() => setLocation("/auth")}>
                 Sign In
@@ -75,6 +96,13 @@ export default function Home() {
                   onClick={() => setLocation("/directory")}
                 >
                   Explore Directory
+                </Button>
+                <Button
+                  size="lg"
+                  variant="secondary"
+                  onClick={() => setLocation("/marketplace/vendors")}
+                >
+                  Browse Marketplace
                 </Button>
                 {!isAuthenticated && (
                   <Button
@@ -187,14 +215,20 @@ export default function Home() {
               <h4 className="font-semibold mb-4">Browse</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li>
-                  <a href="#" className="hover:text-foreground transition">
+                  <button 
+                    onClick={() => setLocation("/directory")}
+                    className="hover:text-foreground transition"
+                  >
                     Directory
-                  </a>
+                  </button>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-foreground transition">
-                    Categories
-                  </a>
+                  <button 
+                    onClick={() => setLocation("/marketplace/vendors")}
+                    className="hover:text-foreground transition"
+                  >
+                    Marketplace
+                  </button>
                 </li>
                 <li>
                   <a href="#" className="hover:text-foreground transition">
