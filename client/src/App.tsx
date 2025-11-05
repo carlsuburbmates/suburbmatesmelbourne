@@ -40,6 +40,7 @@ function Router() {
       <Route path={"/notifications"} component={NotificationCenter} />
       <Route path={"/dashboard"} component={UserDashboard} />
       <Route path={"/vendor/dashboard"} component={VendorDashboard} />
+      <Route path={"/marketplace"} component={Marketplace} />
       <Route path={"/marketplace/vendors"} component={Marketplace} />
       <Route path={"/dashboard/vendor/setup"} component={VendorSetup} />
       <Route path={"/vendor/:vendorId"} component={VendorProfile} />
