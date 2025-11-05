@@ -19,15 +19,8 @@
     {
       "idx": 2,
       "version": "5",
-      "when": 1730627000000,
-      "tag": "0002_vendor_marketplace",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "5",
-      "when": 1730627500000,
-      "tag": "0003_phase4_marketplace",
+      "when": 1762306608296,
+      "tag": "0002_peaceful_loa",
       "breakpoints": true
     }
   ]

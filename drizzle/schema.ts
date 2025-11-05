@@ -555,6 +555,7 @@ export const businessClaimsRelations = relations(businessClaims, ({ one }) => ({
 
 export const productsRelations = relations(products, ({ many }) => ({
   orders: many(orders),
+  productCategories: many(productCategories),
 }));
 
 export const ordersRelations = relations(orders, ({ one, many }) => ({
@@ -705,6 +706,66 @@ export type InsertNotificationPreference =
   typeof notificationPreferences.$inferInsert;
 
 /**
+ * Categories table for product/service organization
+ * Used for filtering and discovery in marketplace
+ */
+export const categories = mysqlTable(
+  "categories",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    name: varchar("name", { length: 100 }).notNull().unique(),
+    slug: varchar("slug", { length: 100 }).notNull().unique(),
+    description: text("description"),
+    icon: varchar("icon", { length: 100 }), // e.g., "package", "wrench", "home"
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  (table) => ({
+    slugIdx: index("slugIdx").on(table.slug),
+  })
+);
+
+export type Category = typeof categories.$inferSelect;
+export type InsertCategory = typeof categories.$inferInsert;
+
+/**
+ * Product-Category join table (many-to-many)
+ * A product can belong to multiple categories
+ */
+export const productCategories = mysqlTable(
+  "productCategories",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    productId: int("productId").notNull(),
+    categoryId: int("categoryId").notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  (table) => ({
+    productIdIdx: index("productIdIdx").on(table.productId),
+    categoryIdIdx: index("categoryIdIdx").on(table.categoryId),
+    uniqueProductCategory: index("uniqueProductCategory").on(
+      table.productId,
+      table.categoryId
+    ),
+    fkProduct: foreignKey({
+      columns: [table.productId],
+      foreignColumns: [products.id],
+    })
+      .onDelete("cascade")
+      .onUpdate("cascade"),
+    fkCategory: foreignKey({
+      columns: [table.categoryId],
+      foreignColumns: [categories.id],
+    })
+      .onDelete("cascade")
+      .onUpdate("cascade"),
+  })
+);
+
+export type ProductCategory = typeof productCategories.$inferSelect;
+export type InsertProductCategory = typeof productCategories.$inferInsert;
+
+/**
  * Relations for Phase 5 tables
  */
 export const cartsRelations = relations(carts, ({ one }) => ({
@@ -725,5 +786,26 @@ export const notificationPreferencesRelations = relations(
       fields: [notificationPreferences.userId],
       references: [users.id],
     }),
+  })
+);
+
+export const productCategoriesRelations = relations(
+  productCategories,
+  ({ one }) => ({
+    product: one(products, {
+      fields: [productCategories.productId],
+      references: [products.id],
+    }),
+    category: one(categories, {
+      fields: [productCategories.categoryId],
+      references: [categories.id],
+    }),
+  })
+);
+
+export const categoriesRelations = relations(
+  categories,
+  ({ many }) => ({
+    productCategories: many(productCategories),
   })
 );
