@@ -6,7 +6,7 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import { ConsentBanner } from "./components/ConsentBanner";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { CartProvider } from "./_core/contexts/CartContext";
-import Home from "./pages/Home";
+import HomePage from "./pages/HomePage";
 import Directory from "./pages/Directory";
 import BusinessProfile from "./pages/BusinessProfile";
 import Auth from "./pages/Auth";
@@ -31,7 +31,7 @@ import { NotificationCenter } from "./pages/NotificationCenter";
 function Router() {
   return (
     <Switch>
-      <Route path={"/"} component={Home} />
+      <Route path={"/"} component={HomePage} />
       <Route path={"/directory"} component={Directory} />
       <Route path={"/business/:id"} component={BusinessProfile} />
       <Route path={"/claim/:businessId"} component={ClaimBusiness} />
