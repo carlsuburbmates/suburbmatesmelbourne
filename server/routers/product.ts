@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { router, publicProcedure, protectedProcedure } from "../_core/trpc";
+import { router, publicProcedure, protectedProcedure, adminProcedure } from "../_core/trpc";
 import { TRPCError } from "@trpc/server";
 import {
   createProduct,
@@ -9,6 +9,10 @@ import {
   deactivateProduct,
   countProductsByVendor,
   getVendorTierLimit,
+  getAllCategories,
+  createCategory,
+  getProductsByCategory,
+  updateProductCategories,
 } from "../db";
 import { PRODUCT_KINDS, FULFILLMENT_METHODS } from "@shared/const";
 
@@ -237,5 +241,114 @@ export const productRouter = router({
     const tierInfo = await getVendorTierLimit(vendorId);
 
     return tierInfo;
+  }),
+
+  // ============ CATEGORIES ROUTER (Phase 5.9) ============
+
+  /**
+   * List all available categories
+   * Public endpoint
+   */
+  categories: router({
+    listAll: publicProcedure.query(async () => {
+      return await getAllCategories();
+    }),
+
+    /**
+     * Create a new category
+     * Admin only
+     */
+    create: adminProcedure
+      .input(
+        z.object({
+          name: z.string().min(1).max(100),
+          slug: z.string().min(1).max(100).regex(/^[a-z0-9-]+$/, "Slug must be lowercase alphanumeric with hyphens"),
+          description: z.string().optional(),
+          icon: z.string().optional(),
+        })
+      )
+      .mutation(async ({ input }) => {
+        try {
+          const category = await createCategory({
+            name: input.name,
+            slug: input.slug,
+            description: input.description,
+            icon: input.icon,
+          });
+          return { success: true, category };
+        } catch (error) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: error instanceof Error ? error.message : "Failed to create category",
+          });
+        }
+      }),
+
+    /**
+     * Get products by category slug with pagination
+     * Public endpoint
+     */
+    getProductsByCategory: publicProcedure
+      .input(
+        z.object({
+          slug: z.string().min(1),
+          limit: z.number().int().min(1).max(100).default(20),
+          offset: z.number().int().min(0).default(0),
+        })
+      )
+      .query(async ({ input }) => {
+        const result = await getProductsByCategory(input.slug, input.limit, input.offset);
+
+        if (!result) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Category not found",
+          });
+        }
+
+        return result;
+      }),
+
+    /**
+     * Update product category assignments
+     * Protected: vendor can update own product categories
+     */
+    updateProductCategories: protectedProcedure
+      .input(
+        z.object({
+          productId: z.number().int().positive(),
+          categoryIds: z.array(z.number().int().positive()),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        const { user } = ctx;
+
+        // Get product
+        const product = await getProductById(input.productId);
+        if (!product) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Product not found",
+          });
+        }
+
+        // Verify ownership
+        if (product.vendorId !== user.id) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "You can only update categories for your own products",
+          });
+        }
+
+        try {
+          await updateProductCategories(input.productId, input.categoryIds);
+          return { success: true, message: "Product categories updated" };
+        } catch (error) {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: error instanceof Error ? error.message : "Failed to update categories",
+          });
+        }
+      }),
   }),
 });

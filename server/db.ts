@@ -32,6 +32,12 @@ import {
   notifications,
   InsertNotification,
   Notification,
+  categories,
+  InsertCategory,
+  Category,
+  productCategories,
+  InsertProductCategory,
+  ProductCategory,
 } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
@@ -1123,4 +1129,160 @@ export async function getVendorTierLimit(vendorId: number): Promise<{
     canAdd: current < limit,
     tier,
   };
+}
+
+// ============ CATEGORY QUERIES (Phase 5.9) ============
+
+/**
+ * Get all categories with product count
+ * Public endpoint for browsing
+ */
+export async function getAllCategories(): Promise<
+  (Category & { productCount: number })[]
+> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const allCategories = await db
+    .select()
+    .from(categories);
+
+  // Get product count for each category
+  const withCounts = await Promise.all(
+    allCategories.map(async (category: Category) => {
+      const countResult = await db
+        .select()
+        .from(productCategories)
+        .where(eq(productCategories.categoryId, category.id));
+      return { ...category, productCount: countResult.length };
+    })
+  );
+
+  return withCounts;
+}
+
+/**
+ * Create a new category
+ * Admin only
+ */
+export async function createCategory(data: {
+  name: string;
+  slug: string;
+  description?: string | null;
+  icon?: string | null;
+}): Promise<Category> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const result = await db
+    .insert(categories)
+    .values({
+      name: data.name,
+      slug: data.slug,
+      description: data.description || null,
+      icon: data.icon || null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+
+  // Fetch the created category to return it
+  const created = await db
+    .select()
+    .from(categories)
+    .where(eq(categories.slug, data.slug))
+    .limit(1);
+
+  return created[0];
+}
+
+/**
+ * Get products by category slug with pagination
+ * Returns category info + paginated products
+ */
+export async function getProductsByCategory(
+  slug: string,
+  limit: number = 20,
+  offset: number = 0
+): Promise<{
+  category: Category | null;
+  products: Product[];
+  total: number;
+} | null> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  // Find category by slug
+  const categoryList = await db
+    .select()
+    .from(categories)
+    .where(eq(categories.slug, slug))
+    .limit(1);
+
+  const foundCategory = categoryList[0];
+  if (!foundCategory) return null;
+
+  // Find all product IDs for this category
+  const productRows = await db
+    .select({ productId: productCategories.productId })
+    .from(productCategories)
+    .where(eq(productCategories.categoryId, foundCategory.id));
+
+  const productIds = productRows.map((row) => row.productId);
+
+  if (productIds.length === 0) {
+    return {
+      category: foundCategory,
+      products: [],
+      total: 0,
+    };
+  }
+
+  // Get paginated products using inArray condition
+  const { inArray } = require("drizzle-orm");
+  const productList = await db
+    .select()
+    .from(products)
+    .where(inArray(products.id, productIds))
+    .limit(limit)
+    .offset(offset);
+
+  return {
+    category: foundCategory,
+    products: productList,
+    total: productIds.length,
+  };
+}
+
+/**
+ * Update product category assignments
+ * Replaces all existing category assignments with new ones
+ */
+export async function updateProductCategories(
+  productId: number,
+  categoryIds: number[]
+): Promise<void> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  // Delete existing category assignments
+  await db
+    .delete(productCategories)
+    .where(eq(productCategories.productId, productId));
+
+  // Insert new category assignments if any
+  if (categoryIds.length > 0) {
+    await db.insert(productCategories).values(
+      categoryIds.map((categoryId) => ({
+        productId,
+        categoryId,
+        createdAt: new Date(),
+      }))
+    );
+  }
+
+  // Update product's updatedAt timestamp
+  await db
+    .update(products)
+    .set({ updatedAt: new Date() })
+    .where(eq(products.id, productId));
 }

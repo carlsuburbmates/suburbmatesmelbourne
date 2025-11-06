@@ -193,6 +193,8 @@ We historically had 4 sources:
 
 * `business_claims` (append-only)
 * `products` (name, desc, price, kind, fulfillment, stock, status)
+* `categories` (name, slug, description, icon) — Phase 5.9
+* `productCategories` (many-to-many join: productId, categoryId) — Phase 5.9
 * `orders` (amounts, vendorId, buyerId, status, stripe refs)
 * `refund_requests` (vendor decision log; buyer request)
 * `dispute_log` (webhook-driven chargebacks)
@@ -285,8 +287,9 @@ All writes must:
 
 * 5.7 Product Creation Backend
 * 5.8 Product Management Frontend
-* 5.9 Inventory Sync
-* 5.10 QA & Deployment → tag **v5.2**
+* 5.9 Categories & Filtering (Database layer + tRPC endpoints + React components)
+* 5.10 Inventory Sync
+* 5.11 QA & Deployment → tag **v5.2**
 
 **Step 3: Vendor Tier Upgrades & Subscriptions**
 
