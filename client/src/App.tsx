@@ -27,6 +27,7 @@ import AdminDisputesPage from "./pages/admin/AdminDisputesPage";
 import VendorRefundResponsePage from "./pages/vendor/VendorRefundResponsePage";
 import { CartPage } from "./pages/CartPage";
 import { NotificationCenter } from "./pages/NotificationCenter";
+import { BillingPage } from "./pages/BillingPage";
 
 function Router() {
   return (
@@ -40,6 +41,7 @@ function Router() {
       <Route path={"/notifications"} component={NotificationCenter} />
       <Route path={"/dashboard"} component={UserDashboard} />
       <Route path={"/vendor/dashboard"} component={VendorDashboard} />
+      <Route path={"/vendor/billing"} component={BillingPage} />
       <Route path={"/marketplace"} component={Marketplace} />
       <Route path={"/marketplace/vendors"} component={Marketplace} />
       <Route path={"/dashboard/vendor/setup"} component={VendorSetup} />

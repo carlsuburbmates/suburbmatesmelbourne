@@ -26,7 +26,7 @@ import { toast } from "sonner";
 import { AlertCircle, CheckCircle } from "lucide-react";
 
 const refundFormSchema = z.object({
-  reason: z.string().min(1, "Please select a reason"),
+  reason: z.enum(["not_as_described", "changed_mind", "defective", "other"]),
   description: z.string().min(10, "Please provide at least 10 characters"),
 });
 
@@ -59,7 +59,7 @@ export function RefundRequestForm({
   const form = useForm<RefundFormValues>({
     resolver: zodResolver(refundFormSchema),
     defaultValues: {
-      reason: "",
+      reason: "changed_mind" as const,
       description: "",
     },
   });

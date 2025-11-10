@@ -680,6 +680,28 @@ export async function updateRefundRequestStatus(
     .where(eq(refundRequests.id, refundId));
 }
 
+export async function getRefundRequestsForVendor(businessId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  // Get all refunds for orders where this business is the vendor
+  return await db
+    .select()
+    .from(refundRequests)
+    .innerJoin(orders, eq(refundRequests.orderId, orders.id))
+    .where(eq(orders.vendorId, businessId))
+    .orderBy(desc(refundRequests.createdAt))
+    .then(results => results.map(r => r.refund_requests));
+}
+
+export async function getAllRefundRequests() {
+  const db = await getDb();
+  if (!db) return [];
+  return await db
+    .select()
+    .from(refundRequests)
+    .orderBy(desc(refundRequests.createdAt));
+}
+
 // ============ PHASE 4: DISPUTE LOGS QUERIES ============
 
 export async function createDisputeLog(data: InsertDisputeLog) {
@@ -1285,4 +1307,192 @@ export async function updateProductCategories(
     .update(products)
     .set({ updatedAt: new Date() })
     .where(eq(products.id, productId));
+}
+
+// ============ SUBSCRIPTION MANAGEMENT (Phase 5.3) ============
+
+/**
+ * Get vendor subscription status by vendor ID (businessId)
+ * Returns current subscription state and renewal date
+ */
+export async function getVendorSubscription(vendorId: number): Promise<VendorMeta | null> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const vendorMeta = await db
+    .select()
+    .from(vendorsMeta)
+    .where(eq(vendorsMeta.businessId, vendorId))
+    .limit(1);
+
+  return vendorMeta.length > 0 ? vendorMeta[0] : null;
+}
+
+/**
+ * Get vendor's associated business for tier information
+ * Returns business with vendorTier and tier expiration
+ */
+export async function getVendorBusiness(vendorId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const business = await db
+    .select()
+    .from(businesses)
+    .where(eq(businesses.id, vendorId))
+    .limit(1);
+
+  return business.length > 0 ? business[0] : null;
+}
+
+/**
+ * Create or update Stripe customer mapping
+ * Used when vendor initiates subscription upgrade
+ */
+export async function upsertStripeCustomer(
+  vendorId: number,
+  stripeCustomerId: string
+): Promise<VendorMeta> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  // Check if vendor exists
+  const existing = await db
+    .select()
+    .from(vendorsMeta)
+    .where(eq(vendorsMeta.businessId, vendorId))
+    .limit(1);
+
+  if (existing.length > 0) {
+    // Update existing
+    await db
+      .update(vendorsMeta)
+      .set({
+        stripeAccountId: stripeCustomerId,
+        updatedAt: new Date(),
+      })
+      .where(eq(vendorsMeta.businessId, vendorId));
+
+    return existing[0];
+  }
+
+  // Create new vendors_meta entry
+  await db.insert(vendorsMeta).values({
+    businessId: vendorId,
+    stripeAccountId: stripeCustomerId,
+    subscriptionStatus: "free",
+  });
+
+  const created = await db
+    .select()
+    .from(vendorsMeta)
+    .where(eq(vendorsMeta.businessId, vendorId))
+    .limit(1);
+
+  return created[0];
+}
+
+/**
+ * Update subscription status after Stripe confirmation
+ * Called by webhook handler when subscription created/updated/cancelled
+ */
+export async function updateSubscriptionStatus(
+  vendorId: number,
+  status: "free" | "basic_active" | "featured_active" | "cancelled",
+  renewsAt?: Date
+): Promise<void> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  // Update vendors_meta subscription status
+  await db
+    .update(vendorsMeta)
+    .set({
+      subscriptionStatus: status,
+      subscriptionRenewsAt: renewsAt || null,
+      updatedAt: new Date(),
+    })
+    .where(eq(vendorsMeta.businessId, vendorId));
+
+  // Update business tier based on subscription status
+  let newTier: "none" | "basic" | "featured" = "none";
+  let expiresAt: Date | null = null;
+
+  if (status === "basic_active" && renewsAt) {
+    newTier = "basic";
+    expiresAt = renewsAt;
+  } else if (status === "featured_active" && renewsAt) {
+    newTier = "featured";
+    expiresAt = renewsAt;
+  }
+
+  await db
+    .update(businesses)
+    .set({
+      vendorTier: newTier,
+      vendorTierExpiresAt: expiresAt,
+      updatedAt: new Date(),
+    })
+    .where(eq(businesses.id, vendorId));
+}
+
+/**
+ * Get vendor tier limit based on current subscription
+ * BASIC: 12 products, FEATURED: 48 products, free: 3 products
+ */
+export async function getVendorTierLimitInfo(vendorId: number): Promise<{
+  tier: "none" | "basic" | "featured";
+  limit: number;
+  current: number;
+  canAdd: boolean;
+  expiresAt?: Date;
+}> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const business = await getVendorBusiness(vendorId);
+  if (!business) {
+    throw new Error(`Business not found for vendor ${vendorId}`);
+  }
+
+  const productCount = await db
+    .select()
+    .from(products)
+    .where(eq(products.vendorId, vendorId));
+
+  const tier = business.vendorTier || "none";
+  let limit = 3; // Free tier
+
+  if (tier === "basic") {
+    limit = 12;
+  } else if (tier === "featured") {
+    limit = 48;
+  }
+
+  return {
+    tier,
+    limit,
+    current: productCount.length,
+    canAdd: productCount.length < limit,
+    expiresAt: business.vendorTierExpiresAt || undefined,
+  };
+}
+
+/**
+ * Get all vendors with active subscriptions (for billing notifications)
+ * Used by scheduled jobs to check renewal dates
+ */
+export async function getActiveVendorsForBilling(): Promise<VendorMeta[]> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  return await db
+    .select()
+    .from(vendorsMeta)
+    .where(
+      and(
+        isNotNull(vendorsMeta.subscriptionRenewsAt),
+        isNotNull(vendorsMeta.stripeAccountId)
+      )
+    );
 }

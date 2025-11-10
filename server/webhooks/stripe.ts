@@ -74,6 +74,27 @@ router.post(
           await handleConnectAccountUpdated(event);
           break;
 
+        // Phase 5.3: Subscription events
+        case "customer.subscription.created":
+          await handleSubscriptionCreated(event);
+          break;
+
+        case "customer.subscription.updated":
+          await handleSubscriptionUpdated(event);
+          break;
+
+        case "customer.subscription.deleted":
+          await handleSubscriptionDeleted(event);
+          break;
+
+        case "invoice.payment_succeeded":
+          await handleInvoicePaymentSucceeded(event);
+          break;
+
+        case "invoice.payment_failed":
+          await handleInvoicePaymentFailed(event);
+          break;
+
         default:
           console.log(`Unhandled event type: ${event.type}`);
       }
@@ -396,6 +417,186 @@ async function handleConnectAccountUpdated(event: Stripe.Event) {
       `Failed to handle Connect account update for ${businessIdStr}:`,
       error
     );
+  }
+}
+
+/**
+ * Handle customer.subscription.created event (Phase 5.3)
+ * Triggered when vendor successfully completes checkout for FEATURED tier
+ */
+async function handleSubscriptionCreated(event: Stripe.Event) {
+  const subscription = event.data.object as unknown as Stripe.Subscription & { current_period_end: number };
+  const vendorIdStr = (subscription as any)?.metadata?.vendorId;
+
+  if (!vendorIdStr) {
+    console.warn("No vendorId in subscription metadata");
+    return;
+  }
+
+  const vendorId = parseInt(vendorIdStr, 10);
+
+  try {
+    // Calculate next renewal date (current_period_end is Unix timestamp)
+    const renewsAt = new Date(subscription.current_period_end * 1000);
+
+    // Update vendor subscription to "featured_active"
+    await db.updateSubscriptionStatus(vendorId, "featured_active", renewsAt);
+
+    console.log(
+      `Vendor ${vendorId} upgraded to FEATURED tier. Renews at: ${renewsAt.toISOString()}`
+    );
+
+    // TODO: Send "subscription activated" email to vendor
+  } catch (error) {
+    console.error(
+      `Failed to handle subscription creation for vendor ${vendorId}:`,
+      error
+    );
+  }
+}
+
+/**
+ * Handle customer.subscription.updated event (Phase 5.3)
+ * Triggered when subscription details change (e.g., plan change, payment method update)
+ */
+async function handleSubscriptionUpdated(event: Stripe.Event) {
+  const subscription = event.data.object as unknown as Stripe.Subscription & { current_period_end: number };
+  const vendorIdStr = (subscription as any)?.metadata?.vendorId;
+
+  if (!vendorIdStr) {
+    console.warn("No vendorId in subscription metadata");
+    return;
+  }
+
+  const vendorId = parseInt(vendorIdStr, 10);
+
+  try {
+    // Determine subscription status based on Stripe status
+    let status: "free" | "basic_active" | "featured_active" | "cancelled" =
+      "free";
+
+    if (subscription.status === "active") {
+      status = "featured_active";
+    } else if (subscription.status === "paused") {
+      status = "free";
+    } else if (subscription.status === "canceled") {
+      status = "cancelled";
+    }
+
+    const renewsAt = new Date(subscription.current_period_end * 1000);
+    await db.updateSubscriptionStatus(vendorId, status, renewsAt);
+
+    console.log(
+      `Vendor ${vendorId} subscription updated to: ${status}. Renews at: ${renewsAt.toISOString()}`
+    );
+  } catch (error) {
+    console.error(
+      `Failed to handle subscription update for vendor ${vendorId}:`,
+      error
+    );
+  }
+}
+
+/**
+ * Handle customer.subscription.deleted event (Phase 5.3)
+ * Triggered when subscription is cancelled
+ */
+async function handleSubscriptionDeleted(event: Stripe.Event) {
+  const subscription = event.data.object as Stripe.Subscription;
+  const vendorIdStr = subscription.metadata?.vendorId;
+
+  if (!vendorIdStr) {
+    console.warn("No vendorId in subscription metadata");
+    return;
+  }
+
+  const vendorId = parseInt(vendorIdStr, 10);
+
+  try {
+    // Set vendor back to free tier
+    await db.updateSubscriptionStatus(vendorId, "free");
+
+    console.log(
+      `Vendor ${vendorId} subscription cancelled. Tier reset to free.`
+    );
+
+    // TODO: Send "subscription cancelled" email to vendor
+  } catch (error) {
+    console.error(
+      `Failed to handle subscription deletion for vendor ${vendorId}:`,
+      error
+    );
+  }
+}
+
+/**
+ * Handle invoice.payment_succeeded event (Phase 5.3)
+ * Triggered when subscription invoice payment succeeds
+ */
+async function handleInvoicePaymentSucceeded(event: Stripe.Event) {
+  const invoice = event.data.object as unknown as Stripe.Invoice & { subscription: string | null };
+  const subscriptionId = (invoice as any)?.subscription as string | null;
+
+  if (!subscriptionId) {
+    console.log("Invoice has no subscription");
+    return;
+  }
+
+  try {
+    // Retrieve subscription to get vendor ID
+    const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+    const vendorIdStr = subscription.metadata?.vendorId;
+
+    if (!vendorIdStr) {
+      console.warn("No vendorId in subscription metadata");
+      return;
+    }
+
+    const vendorId = parseInt(vendorIdStr, 10);
+
+    console.log(
+      `Invoice payment succeeded for vendor ${vendorId}. Invoice: ${invoice.id}`
+    );
+
+    // TODO: Send "payment received" email to vendor
+  } catch (error) {
+    console.error(`Failed to handle invoice payment success:`, error);
+  }
+}
+
+/**
+ * Handle invoice.payment_failed event (Phase 5.3)
+ * Triggered when subscription invoice payment fails
+ */
+async function handleInvoicePaymentFailed(event: Stripe.Event) {
+  const invoice = event.data.object as unknown as Stripe.Invoice & { subscription: string | null };
+  const subscriptionId = (invoice as any)?.subscription as string | null;
+
+  if (!subscriptionId) {
+    console.log("Invoice has no subscription");
+    return;
+  }
+
+  try {
+    // Retrieve subscription to get vendor ID
+    const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+    const vendorIdStr = subscription.metadata?.vendorId;
+
+    if (!vendorIdStr) {
+      console.warn("No vendorId in subscription metadata");
+      return;
+    }
+
+    const vendorId = parseInt(vendorIdStr, 10);
+
+    console.log(
+      `Invoice payment failed for vendor ${vendorId}. Invoice: ${invoice.id}`
+    );
+
+    // TODO: Send "payment failed" email with retry/update payment method link
+    // TODO: Consider downgrading tier if payment remains unpaid after retry period
+  } catch (error) {
+    console.error(`Failed to handle invoice payment failure:`, error);
   }
 }
 

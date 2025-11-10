@@ -15,6 +15,7 @@ import {
 import { cartRouter } from "./routers/cart";
 import { notificationsRouter } from "./routers/notifications";
 import { productRouter } from "./routers/product";
+import { subscriptionRouter } from "./routers/subscription";
 
 export const appRouter = router({
   system: systemRouter,
@@ -995,35 +996,135 @@ export const appRouter = router({
     request: protectedProcedure
       .input(
         z.object({
-          orderId: z.number(),
-          reason: z.string().min(1),
-          description: z.string().optional(),
+          orderId: z.number().positive(),
+          reason: z.enum(["not_as_described", "changed_mind", "defective", "other"]),
+          description: z.string().min(10).max(1000),
         })
       )
       .mutation(async ({ ctx, input }) => {
-        const order = await db.getOrderById(input.orderId);
-        if (!order) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Order not found",
-          });
-        }
+        const buyer = ctx.user;
+        if (!buyer?.id) throw new TRPCError({ code: "UNAUTHORIZED" });
 
-        if (order.buyerId !== ctx.user.id) {
+        // Verify order exists and buyer owns it
+        const order = await db.getOrderById(input.orderId);
+        if (!order) throw new TRPCError({ code: "NOT_FOUND", message: "Order not found" });
+        if (order.buyerId !== buyer.id) {
           throw new TRPCError({
             code: "FORBIDDEN",
-            message: "Only order buyer can request refund",
+            message: "You can only request refunds for your own orders",
           });
         }
 
-        return await db.createRefundRequest({
+        // Verify order can be refunded
+        if (order.status === "refunded" || order.status === "disputed") {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "This order is already refunded or disputed",
+          });
+        }
+
+        // Check if refund request already exists
+        const existingRefunds = await db.getRefundRequestsByOrderId(input.orderId);
+        const pendingRefund = existingRefunds.find(r => r.status === "pending");
+        if (pendingRefund) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "A refund request already exists for this order",
+          });
+        }
+
+        // Create refund request with full order amount
+        const result = await db.createRefundRequest({
           orderId: input.orderId,
-          buyerId: ctx.user.id,
+          buyerId: buyer.id,
           reason: input.reason,
           description: input.description,
           status: "pending",
+          refundAmountCents: order.totalCents,
         });
+
+        return {
+          id: (result as any).insertId || 0,
+          status: "pending" as const,
+          message: "Refund request submitted successfully",
+        };
       }),
+
+    /**
+     * Get refund request details
+     */
+    getById: protectedProcedure
+      .input(z.object({ refundId: z.number().positive() }))
+      .query(async ({ ctx, input }) => {
+        const user = ctx.user;
+        if (!user?.id) throw new TRPCError({ code: "UNAUTHORIZED" });
+
+        const refund = await db.getRefundRequestById(input.refundId);
+        if (!refund) throw new TRPCError({ code: "NOT_FOUND" });
+
+        // Verify access
+        const order = await db.getOrderById(refund.orderId);
+        if (!order) throw new TRPCError({ code: "NOT_FOUND" });
+
+        const canAccess =
+          refund.buyerId === user.id || order.vendorId === user.id || user.role === "admin";
+        if (!canAccess) {
+          throw new TRPCError({ code: "FORBIDDEN" });
+        }
+
+        return refund;
+      }),
+
+    /**
+     * Get all refunds for authenticated user
+     */
+    list: protectedProcedure
+      .input(
+        z.object({
+          status: z.enum(["pending", "approved", "rejected", "processing", "completed"]).optional(),
+          limit: z.number().min(1).max(100).default(20),
+          offset: z.number().min(0).default(0),
+        })
+      )
+      .query(async ({ ctx, input }) => {
+        const user = ctx.user;
+        if (!user?.id) throw new TRPCError({ code: "UNAUTHORIZED" });
+
+        let refunds: any[] = [];
+
+        if (user.role === "buyer" || user.role === "user") {
+          refunds = await db.getRefundRequestsByBuyerId(user.id);
+        } else if (user.role === "vendor" || user.role === "business_owner") {
+          const business = await db.getVendorBusiness(user.id);
+          if (business) {
+            refunds = await db.getRefundRequestsForVendor(business.id);
+          }
+        } else if (user.role === "admin") {
+          refunds = await db.getAllRefundRequests();
+        }
+
+        // Filter by status if provided
+        if (input.status) {
+          refunds = refunds.filter(r => r.status === input.status);
+        }
+
+        // Apply pagination
+        const total = refunds.length;
+        const paged = refunds.slice(input.offset, input.offset + input.limit);
+
+        return {
+          refunds: paged,
+          total,
+          hasMore: input.offset + input.limit < total,
+        };
+      }),
+
+    /**
+     * Get refund requests for buyer (legacy)
+     */
+    getMine: protectedProcedure.query(async ({ ctx }) => {
+      return await db.getRefundRequestsByBuyerId(ctx.user.id);
+    }),
 
     /**
      * Get refund requests for order
@@ -1035,14 +1136,156 @@ export const appRouter = router({
       }),
 
     /**
-     * Get refund requests for buyer
+     * Approve a refund request (vendor/admin only)
      */
-    getMine: protectedProcedure.query(async ({ ctx }) => {
-      return await db.getRefundRequestsByBuyerId(ctx.user.id);
-    }),
+    approve: protectedProcedure
+      .input(
+        z.object({
+          refundId: z.number().positive(),
+          vendorResponse: z.string().optional(),
+          refundAmountCents: z.number().nonnegative().optional(),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        const vendor = ctx.user;
+        if (!vendor?.id) throw new TRPCError({ code: "UNAUTHORIZED" });
+
+        const refund = await db.getRefundRequestById(input.refundId);
+        if (!refund) throw new TRPCError({ code: "NOT_FOUND" });
+
+        const order = await db.getOrderById(refund.orderId);
+        if (!order) throw new TRPCError({ code: "NOT_FOUND" });
+
+        const vendorBusiness = await db.getVendorBusiness(vendor.id);
+        if (!vendorBusiness || vendorBusiness.id !== order.vendorId) {
+          if (vendor.role !== "admin") {
+            throw new TRPCError({ code: "FORBIDDEN", message: "Not your order" });
+          }
+        }
+
+        if (refund.status !== "pending") {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: `Refund is already ${refund.status}`,
+          });
+        }
+
+        try {
+          // Process Stripe refund using payment_intent ID
+          const Stripe = require("stripe");
+          const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "");
+
+          const refundAmount = input.refundAmountCents || refund.refundAmountCents || order.totalCents;
+          
+          // Verify payment intent exists
+          if (!order.stripePaymentIntentId) {
+            throw new Error("No payment intent ID found for this order");
+          }
+
+          const stripeRefund = await stripe.refunds.create({
+            payment_intent: order.stripePaymentIntentId,
+            amount: refundAmount,
+          });
+
+          await db.updateRefundRequestStatus(input.refundId, "processing", {
+            vendorResponse: input.vendorResponse,
+            stripeRefundId: stripeRefund.id,
+            refundAmountCents: refundAmount,
+          });
+
+          await db.updateOrderStatus(order.id, "refunded");
+
+          return {
+            success: true,
+            stripeRefundId: stripeRefund.id,
+            status: "processing" as const,
+            message: "Refund approved and processing",
+          };
+        } catch (error: any) {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: `Stripe error: ${error.message}`,
+          });
+        }
+      }),
 
     /**
-     * Update refund request status (vendor/admin only)
+     * Reject a refund request (vendor/admin only)
+     */
+    reject: protectedProcedure
+      .input(
+        z.object({
+          refundId: z.number().positive(),
+          vendorResponse: z.string().optional(),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        const vendor = ctx.user;
+        if (!vendor?.id) throw new TRPCError({ code: "UNAUTHORIZED" });
+
+        const refund = await db.getRefundRequestById(input.refundId);
+        if (!refund) throw new TRPCError({ code: "NOT_FOUND" });
+
+        const order = await db.getOrderById(refund.orderId);
+        if (!order) throw new TRPCError({ code: "NOT_FOUND" });
+
+        const vendorBusiness = await db.getVendorBusiness(vendor.id);
+        if (!vendorBusiness || vendorBusiness.id !== order.vendorId) {
+          if (vendor.role !== "admin") {
+            throw new TRPCError({ code: "FORBIDDEN" });
+          }
+        }
+
+        if (refund.status !== "pending") {
+          throw new TRPCError({ code: "BAD_REQUEST", message: `Refund is already ${refund.status}` });
+        }
+
+        await db.updateRefundRequestStatus(input.refundId, "rejected", {
+          vendorResponse: input.vendorResponse || "Refund request denied",
+        });
+
+        return {
+          success: true,
+          status: "rejected" as const,
+          message: "Refund request rejected",
+        };
+      }),
+
+    /**
+     * Cancel a pending refund request (buyer only)
+     */
+    cancel: protectedProcedure
+      .input(z.object({ refundId: z.number().positive() }))
+      .mutation(async ({ ctx, input }) => {
+        const buyer = ctx.user;
+        if (!buyer?.id) throw new TRPCError({ code: "UNAUTHORIZED" });
+
+        const refund = await db.getRefundRequestById(input.refundId);
+        if (!refund) throw new TRPCError({ code: "NOT_FOUND" });
+
+        if (refund.buyerId !== buyer.id) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Not your refund request" });
+        }
+
+        if (refund.status !== "pending") {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: `Cannot cancel a ${refund.status} refund request`,
+          });
+        }
+
+        await db.updateRefundRequestStatus(input.refundId, "rejected", {
+          vendorResponse: "Cancelled by buyer",
+        });
+
+        return {
+          success: true,
+          message: "Refund request cancelled",
+        };
+      }),
+
+    /**
+     * Update refund request status (vendor/admin only) - Legacy
      */
     updateStatus: protectedProcedure
       .input(
@@ -1068,7 +1311,6 @@ export const appRouter = router({
         }
 
         if (ctx.user.role !== "admin") {
-          // Vendor can only approve/reject their own products
           const order = await db.getOrderById(refund.orderId);
           if (order?.vendorId !== ctx.user.id) {
             throw new TRPCError({
@@ -1296,6 +1538,9 @@ export const appRouter = router({
 
   // ============ PHASE 5: NOTIFICATIONS ROUTER ============
   notifications: notificationsRouter,
+
+  // ============ PHASE 5.3: SUBSCRIPTION ROUTER ============
+  subscription: subscriptionRouter,
 });
 
 export type AppRouter = typeof appRouter;
