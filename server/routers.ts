@@ -997,7 +997,12 @@ export const appRouter = router({
       .input(
         z.object({
           orderId: z.number().positive(),
-          reason: z.enum(["not_as_described", "changed_mind", "defective", "other"]),
+          reason: z.enum([
+            "not_as_described",
+            "changed_mind",
+            "defective",
+            "other",
+          ]),
           description: z.string().min(10).max(1000),
         })
       )
@@ -1007,7 +1012,11 @@ export const appRouter = router({
 
         // Verify order exists and buyer owns it
         const order = await db.getOrderById(input.orderId);
-        if (!order) throw new TRPCError({ code: "NOT_FOUND", message: "Order not found" });
+        if (!order)
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Order not found",
+          });
         if (order.buyerId !== buyer.id) {
           throw new TRPCError({
             code: "FORBIDDEN",
@@ -1024,7 +1033,9 @@ export const appRouter = router({
         }
 
         // Check if refund request already exists
-        const existingRefunds = await db.getRefundRequestsByOrderId(input.orderId);
+        const existingRefunds = await db.getRefundRequestsByOrderId(
+          input.orderId
+        );
         const pendingRefund = existingRefunds.find(r => r.status === "pending");
         if (pendingRefund) {
           throw new TRPCError({
@@ -1067,7 +1078,9 @@ export const appRouter = router({
         if (!order) throw new TRPCError({ code: "NOT_FOUND" });
 
         const canAccess =
-          refund.buyerId === user.id || order.vendorId === user.id || user.role === "admin";
+          refund.buyerId === user.id ||
+          order.vendorId === user.id ||
+          user.role === "admin";
         if (!canAccess) {
           throw new TRPCError({ code: "FORBIDDEN" });
         }
@@ -1081,7 +1094,15 @@ export const appRouter = router({
     list: protectedProcedure
       .input(
         z.object({
-          status: z.enum(["pending", "approved", "rejected", "processing", "completed"]).optional(),
+          status: z
+            .enum([
+              "pending",
+              "approved",
+              "rejected",
+              "processing",
+              "completed",
+            ])
+            .optional(),
           limit: z.number().min(1).max(100).default(20),
           offset: z.number().min(0).default(0),
         })
@@ -1159,7 +1180,10 @@ export const appRouter = router({
         const vendorBusiness = await db.getVendorBusiness(vendor.id);
         if (!vendorBusiness || vendorBusiness.id !== order.vendorId) {
           if (vendor.role !== "admin") {
-            throw new TRPCError({ code: "FORBIDDEN", message: "Not your order" });
+            throw new TRPCError({
+              code: "FORBIDDEN",
+              message: "Not your order",
+            });
           }
         }
 
@@ -1175,8 +1199,11 @@ export const appRouter = router({
           const Stripe = require("stripe");
           const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "");
 
-          const refundAmount = input.refundAmountCents || refund.refundAmountCents || order.totalCents;
-          
+          const refundAmount =
+            input.refundAmountCents ||
+            refund.refundAmountCents ||
+            order.totalCents;
+
           // Verify payment intent exists
           if (!order.stripePaymentIntentId) {
             throw new Error("No payment intent ID found for this order");
@@ -1237,7 +1264,10 @@ export const appRouter = router({
         }
 
         if (refund.status !== "pending") {
-          throw new TRPCError({ code: "BAD_REQUEST", message: `Refund is already ${refund.status}` });
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: `Refund is already ${refund.status}`,
+          });
         }
 
         await db.updateRefundRequestStatus(input.refundId, "rejected", {
@@ -1264,7 +1294,10 @@ export const appRouter = router({
         if (!refund) throw new TRPCError({ code: "NOT_FOUND" });
 
         if (refund.buyerId !== buyer.id) {
-          throw new TRPCError({ code: "FORBIDDEN", message: "Not your refund request" });
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "Not your refund request",
+          });
         }
 
         if (refund.status !== "pending") {

@@ -877,10 +877,7 @@ export async function createOrUpdateCart(
 
   const existing = await getCartByUserId(userId);
   if (existing) {
-    await db
-      .update(carts)
-      .set(cartData)
-      .where(eq(carts.userId, userId));
+    await db.update(carts).set(cartData).where(eq(carts.userId, userId));
     return (await getCartByUserId(userId))!;
   }
 
@@ -1012,7 +1009,9 @@ export async function createProduct(
  */
 export async function updateProduct(
   productId: number,
-  input: Partial<Omit<InsertProduct, "id" | "vendorId" | "createdAt" | "updatedAt">>
+  input: Partial<
+    Omit<InsertProduct, "id" | "vendorId" | "createdAt" | "updatedAt">
+  >
 ): Promise<Product> {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
@@ -1062,7 +1061,9 @@ export async function listProductsByVendor(
 /**
  * Get a single product by ID (public read)
  */
-export async function getProductById(productId: number): Promise<Product | undefined> {
+export async function getProductById(
+  productId: number
+): Promise<Product | undefined> {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
@@ -1165,9 +1166,7 @@ export async function getAllCategories(): Promise<
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
-  const allCategories = await db
-    .select()
-    .from(categories);
+  const allCategories = await db.select().from(categories);
 
   // Get product count for each category
   const withCounts = await Promise.all(
@@ -1196,16 +1195,14 @@ export async function createCategory(data: {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
-  const result = await db
-    .insert(categories)
-    .values({
-      name: data.name,
-      slug: data.slug,
-      description: data.description || null,
-      icon: data.icon || null,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    });
+  const result = await db.insert(categories).values({
+    name: data.name,
+    slug: data.slug,
+    description: data.description || null,
+    icon: data.icon || null,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  });
 
   // Fetch the created category to return it
   const created = await db
@@ -1249,7 +1246,7 @@ export async function getProductsByCategory(
     .from(productCategories)
     .where(eq(productCategories.categoryId, foundCategory.id));
 
-  const productIds = productRows.map((row) => row.productId);
+  const productIds = productRows.map(row => row.productId);
 
   if (productIds.length === 0) {
     return {
@@ -1294,7 +1291,7 @@ export async function updateProductCategories(
   // Insert new category assignments if any
   if (categoryIds.length > 0) {
     await db.insert(productCategories).values(
-      categoryIds.map((categoryId) => ({
+      categoryIds.map(categoryId => ({
         productId,
         categoryId,
         createdAt: new Date(),
@@ -1315,7 +1312,9 @@ export async function updateProductCategories(
  * Get vendor subscription status by vendor ID (businessId)
  * Returns current subscription state and renewal date
  */
-export async function getVendorSubscription(vendorId: number): Promise<VendorMeta | null> {
+export async function getVendorSubscription(
+  vendorId: number
+): Promise<VendorMeta | null> {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
