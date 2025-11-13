@@ -1,0 +1,10 @@
+{
+  "required_fields": [
+    "is_vendor",
+    "vendor_status",
+    "vendor_tier",
+    "published",
+    "delivery_type"
+  ],
+  "schema_file": "v1.1/docs/03_ARCHITECTURE/03.3_SCHEMA_REFERENCE.md"
+}

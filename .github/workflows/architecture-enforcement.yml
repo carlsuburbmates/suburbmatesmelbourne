@@ -1,0 +1,63 @@
+name: Architecture Enforcement (Archive Mode)
+
+on:
+  pull_request:
+
+jobs:
+  architecture-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Fail if archived Phase 5 dirs are modified
+        run: |
+          git fetch origin ${{ github.base_ref }} --depth=1
+
+          MODIFIED_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD 2>/dev/null || echo "")
+
+          if echo "$MODIFIED_FILES" | grep -E '^(client/|server/|drizzle/|shared/)' >/dev/null 2>&1; then
+            echo "❌ Archived Phase 5 directory modified (client/server/drizzle/shared)."
+            exit 1
+          else
+            echo "✅ No modifications detected in archived Phase 5 dirs."
+          fi
+
+      - name: Fail if forbidden packages are used in v1.1
+        run: |
+          if [ ! -d "v1.1" ]; then
+            echo "No v1.1 directory found, skipping."
+            exit 0
+          fi
+
+          FORBIDDEN_PKGS=$(jq -r '.forbidden_packages_in_v1_1[]' v1.1/docs/DEV_NOTES/automation/architecture_guard.json)
+
+          cd v1.1
+          for pkg in $FORBIDDEN_PKGS; do
+            if grep -R -q "$pkg" . 2>/dev/null; then
+              echo "❌ Forbidden package/string detected in v1.1/: $pkg"
+              exit 1
+            fi
+          done
+
+          echo "✅ No forbidden packages found in v1.1/."
+
+      - name: Fail if v1.1 imports from Phase 5 dirs
+        run: |
+          if [ ! -d "v1.1" ]; then
+            echo "No v1.1 directory found, skipping."
+            exit 0
+          fi
+
+          PATTERNS=$(jq -r '.forbidden_import_patterns_in_v1_1[]' v1.1/docs/DEV_NOTES/automation/architecture_guard.json)
+
+          cd v1.1
+          for pat in $PATTERNS; do
+            if grep -R -q "$pat" . 2>/dev/null; then
+              echo "❌ Forbidden import from Phase 5 detected in v1.1/: $pat"
+              exit 1
+            fi
+          done
+
+          echo "✅ No forbidden imports from Phase 5 found in v1.1/."

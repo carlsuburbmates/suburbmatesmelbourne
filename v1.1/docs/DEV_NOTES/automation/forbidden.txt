@@ -1,0 +1,25 @@
+# Forbidden patterns (if found in V1.1 → FAIL CI immediately)
+
+platform-issued refund
+Suburbmates issues a refund
+Merchant of Record: Suburbmates
+Merchant of Record: Platform
+
+mysql
+drizzle
+trpc
+manus
+
+chargeback handled by platform
+platform handles chargebacks
+
+hard deadline
+launch date
+December 1
+Phase 5 launch
+
+refund issued by platform
+"platform refund"
+
+from phase 5
+schema: mysql

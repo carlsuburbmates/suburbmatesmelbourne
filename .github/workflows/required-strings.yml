@@ -1,0 +1,54 @@
+name: Required Strings Check (V1.1 Docs)
+
+on:
+  pull_request:
+
+jobs:
+  required-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Verify required strings exist in key V1.1 docs
+        run: |
+          set -e
+
+          if [ ! -d "v1.1/docs" ]; then
+            echo "❌ v1.1/docs not found."
+            exit 1
+          fi
+
+          SCHEMA_FILE="v1.1/docs/03_ARCHITECTURE/03.3_SCHEMA_REFERENCE.md"
+          LEGAL_FILE="v1.1/docs/07_QUALITY_AND_LEGAL/07.1_LEGAL_COMPLIANCE_AND_DATA.md"
+          API_FILE="v1.1/docs/04_API/04.1_API_SPECIFICATION.md"
+          POLICY_FILE="v1.1/docs/DEV_NOTES/00_BUILD_POLICY.md"
+
+          while read -r pattern; do
+            [ -z "$pattern" ] && continue
+
+            case "$pattern" in
+              is_vendor|vendor_status|vendor_tier|delivery_type|published|"Directory vs Marketplace in the Schema")
+                target="$SCHEMA_FILE"
+                ;;
+              "Vendor is the Merchant of Record"|"Suburbmates does not issue refunds")
+                target="$LEGAL_FILE"
+                ;;
+              "Scope: DIRECTORY"|"Scope: MARKETPLACE"|application_fee_amount)
+                target="$API_FILE"
+                ;;
+              "Selective Hybrid Reuse")
+                target="$POLICY_FILE"
+                ;;
+              *)
+                echo "⚠️  Warning: Pattern '$pattern' unknown. Skipping."
+                continue
+                ;;
+            esac
+
+            if ! grep -q "$pattern" "$target"; then
+              echo "❌ Required pattern missing: '$pattern' in $target"
+              exit 1
+            fi
+          done < v1.1/docs/DEV_NOTES/automation/required.txt
+
+          echo "✅ All required patterns found in their target files."

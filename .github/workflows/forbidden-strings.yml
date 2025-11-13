@@ -1,0 +1,26 @@
+name: Forbidden Strings Check (V1.1)
+
+on:
+  pull_request:
+
+jobs:
+  forbidden-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Scan v1.1/ for forbidden patterns
+        run: |
+          if [ ! -d "v1.1" ]; then
+            echo "No v1.1 directory found. Skipping."
+            exit 0
+          fi
+
+          cd v1.1
+
+          if grep -R -n -f docs/DEV_NOTES/automation/forbidden.txt . 2>/dev/null; then
+            echo "❌ Forbidden pattern found in v1.1/."
+            exit 1
+          else
+            echo "✅ No forbidden patterns found in v1.1/."
+          fi

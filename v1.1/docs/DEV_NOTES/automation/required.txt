@@ -1,0 +1,21 @@
+# If ANY of these are missing in their corresponding files → FAIL CI
+
+# Schema reference required terms (v1.1/docs/03_ARCHITECTURE/03.3_SCHEMA_REFERENCE.md):
+is_vendor
+vendor_status
+vendor_tier
+delivery_type
+published
+Directory vs Marketplace in the Schema
+
+# Legal/compliance required terms (v1.1/docs/07_QUALITY_AND_LEGAL/07.1_LEGAL_COMPLIANCE_AND_DATA.md):
+Vendor is the Merchant of Record
+Suburbmates does not issue refunds
+
+# API spec required terms (v1.1/docs/04_API/04.1_API_SPECIFICATION.md):
+Scope: DIRECTORY
+Scope: MARKETPLACE
+application_fee_amount
+
+# Policy alignment (v1.1/docs/DEV_NOTES/00_BUILD_POLICY.md):
+Selective Hybrid Reuse
