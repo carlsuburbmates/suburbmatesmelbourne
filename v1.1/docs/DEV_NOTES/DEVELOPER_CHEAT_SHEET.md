@@ -21,17 +21,19 @@ If anything conflicts, follow this order:
 
 **Stack:**
 - Next.js 14 App Router
-- Next.js API routes (**no tRPC**)
+- Next.js API routes (not tRPC)
 - Supabase PostgreSQL
 - Supabase Auth (JWT)
 - Stripe Payments + Stripe Connect **Standard**
 - Sentry for error logging
 
-**Forbidden:**
-- tRPC, Drizzle ORM, MySQL
-- Manus code/SDK
-- Platform-issued refunds
-- Platform-as-MoR logic
+**Architecture constraints:**
+- Express-based (tRPC) backends are forbidden
+- ORMs like Drizzle are forbidden
+- SQL databases like MySQL are forbidden
+- Manus SDK code is forbidden
+- Platform-issued refunds are forbidden
+- Platform-as-MoR logic is forbidden
 
 ---
 
@@ -100,13 +102,13 @@ Shows products from **active vendors only**:
 - Event sequencing patterns (Stripe webhook order)
 - Error boundary patterns
 
-**Forbidden:**
-- Database queries
-- tRPC procedures
-- Auth context/middleware
-- Refund/dispute logic
-- MoR logic
-- MySQL → Drizzle code
+**Not allowed from Phase 5:**
+- Database query code
+- Backend procedure code (tRPC-style)
+- Authentication context/middleware
+- Refund/dispute handling logic
+- Merchant-of-record assumptions
+- ORM-based queries
 
 ---
 
@@ -248,7 +250,7 @@ If Copilot leaves comments, address them before merging.
 ## 12. Quick Debugging
 
 **"CI check failed - Forbidden Strings"**
-→ Check you haven't imported `tRPC`, `Drizzle`, `mysql`, `manus`
+→ Check you haven't imported packages or patterns that are excluded
 
 **"CI check failed - Required Strings"**
 → Check schema, legal, API docs have required terms

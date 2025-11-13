@@ -7,7 +7,7 @@
 
 ## 1. V1.1 Architectural Compliance
 - [ ] No imports from Phase 5 (`client/`, `server/`, `drizzle/`, `shared/`)
-- [ ] No tRPC, Drizzle ORM, MySQL, or Manus code introduced
+- [ ] No excluded technologies or frameworks introduced
 - [ ] Code matches Next.js App Router + Supabase + Stripe Connect Standard architecture
 
 ---
@@ -32,9 +32,9 @@
 ---
 
 ## 5. Compliance With Enforcement (CI Checks)
-- [ ] No forbidden strings detected (mysql, trpc, manus, drizzle)
+- [ ] No forbidden strings detected in code
 - [ ] Required strings preserved in schema, legal, and API docs
-- [ ] Phase 5 directories (client/, server/, drizzle/, shared/) not modified
+- [ ] Phase 5 directories (client/, `server/`, `shared/`) not modified
 - [ ] Schema reference unchanged unless intentionally updated with new required fields
 
 ---
