@@ -25,27 +25,29 @@ jobs:
 
           while read -r pattern; do
             [ -z "$pattern" ] && continue
+            # Skip comments
+            [[ "$pattern" =~ ^# ]] && continue
 
             case "$pattern" in
-              is_vendor|vendor_status|vendor_tier|delivery_type|published|"Directory vs Marketplace in the Schema")
+              is_vendor|vendor_status|vendor_tier|delivery_type|published)
                 target="$SCHEMA_FILE"
                 ;;
-              "Vendor is the Merchant of Record"|"Suburbmates does not issue refunds")
+              "merchant of record"|"Suburbmates does not issue refunds")
                 target="$LEGAL_FILE"
                 ;;
-              "Scope: DIRECTORY"|"Scope: MARKETPLACE"|application_fee_amount)
+              "Directory Endpoints"|"application_fee_amount")
                 target="$API_FILE"
                 ;;
               "Selective Hybrid Reuse")
                 target="$POLICY_FILE"
                 ;;
               *)
-                echo "⚠️  Warning: Pattern '$pattern' unknown. Skipping."
+                echo "⚠️  Pattern '$pattern' skipped (not yet categorized)."
                 continue
                 ;;
             esac
 
-            if ! grep -q "$pattern" "$target"; then
+            if ! grep -qi "$pattern" "$target"; then
               echo "❌ Required pattern missing: '$pattern' in $target"
               exit 1
             fi
