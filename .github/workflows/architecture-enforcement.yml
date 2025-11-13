@@ -34,14 +34,15 @@ jobs:
           FORBIDDEN_PKGS=$(jq -r '.forbidden_packages_in_v1_1[]' v1.1/docs/DEV_NOTES/automation/architecture_guard.json)
 
           cd v1.1
+          # Exclude docs directory from this check (patterns allowed in doc comments/explanations)
           for pkg in $FORBIDDEN_PKGS; do
-            if grep -R -q "$pkg" . 2>/dev/null; then
-              echo "❌ Forbidden package/string detected in v1.1/: $pkg"
+            if grep -R -q "$pkg" . --exclude-dir=docs 2>/dev/null; then
+              echo "❌ Forbidden package detected in v1.1 code: $pkg"
               exit 1
             fi
           done
 
-          echo "✅ No forbidden packages found in v1.1/."
+          echo "✅ No forbidden packages found in v1.1 code."
 
       - name: Fail if v1.1 imports from Phase 5 dirs
         run: |
@@ -53,11 +54,12 @@ jobs:
           PATTERNS=$(jq -r '.forbidden_import_patterns_in_v1_1[]' v1.1/docs/DEV_NOTES/automation/architecture_guard.json)
 
           cd v1.1
+          # Exclude docs directory from import check
           for pat in $PATTERNS; do
-            if grep -R -q "$pat" . 2>/dev/null; then
-              echo "❌ Forbidden import from Phase 5 detected in v1.1/: $pat"
+            if grep -R -q "$pat" . --exclude-dir=docs 2>/dev/null; then
+              echo "❌ Forbidden import from Phase 5 detected: $pat"
               exit 1
             fi
           done
 
-          echo "✅ No forbidden imports from Phase 5 found in v1.1/."
+          echo "✅ No forbidden imports from Phase 5 found in v1.1 code."

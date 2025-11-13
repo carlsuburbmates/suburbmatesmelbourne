@@ -18,7 +18,7 @@ jobs:
 
           cd v1.1
 
-          if grep -R -n -f docs/DEV_NOTES/automation/forbidden.txt . 2>/dev/null; then
+          if grep -R -n -f docs/DEV_NOTES/automation/forbidden.txt . --exclude-dir=docs 2>/dev/null; then
             echo "❌ Forbidden pattern found in v1.1/."
             exit 1
           else
