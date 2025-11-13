@@ -8,7 +8,7 @@
 
 If anything conflicts, follow this order:
 
-1. `v1.1/docs/**` (SuburbmainsV1.1 specification)
+1. `v1.1/docs/**` (SuburbmatesV1.1 specification)
 2. `v1.1/docs/DEV_NOTES/00_BUILD_POLICY.md`
 3. `v1.1/docs/DEV_NOTES/ARCHITECTURAL_GUARDS.md`
 4. Phase 5 code → reference only
