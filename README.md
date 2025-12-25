@@ -1,5 +1,10 @@
 # Suburbmates — V1.1 Repository
 
+A Directory hybrid Digital Marketplace
+1. Connect Melbourne residents with local trades/businesses (Lead Gen).
+2. Facilitate direct sales of Digital services/products (Marketplace)
+
+
 A dual-mode monorepo containing:
 
 1. **Phase 5 (Archived)** — read-only reference
