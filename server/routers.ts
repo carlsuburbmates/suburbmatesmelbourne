@@ -55,7 +55,7 @@ export const appRouter = router({
       }),
 
     /**
-     * Get a specific business by ID
+     * Get a specific business by ID with rating information
      */
     getById: publicProcedure
       .input(z.object({ id: z.number() }))
@@ -67,7 +67,23 @@ export const appRouter = router({
             message: "Business not found",
           });
         }
-        return business;
+
+        // Get rating stats if this business has vendor metadata
+        const vendor = await db.getVendorMeta(input.id);
+        let rating = 0;
+        let reviewCount = 0;
+
+        if (vendor) {
+          const stats = await db.getBusinessRatingStats(input.id);
+          rating = stats.averageRating;
+          reviewCount = stats.reviewCount;
+        }
+
+        return {
+          ...business,
+          rating,
+          reviewCount,
+        };
       }),
 
     /**
@@ -210,6 +226,65 @@ export const appRouter = router({
                 : "ABN verification failed",
           });
         }
+      }),
+
+    /**
+     * Update business profile (business owner or admin only)
+     */
+    update: protectedProcedure
+      .input(
+        z.object({
+          businessId: z.number(),
+          businessName: z.string().min(1).max(255).optional(),
+          about: z.string().optional(),
+          address: z.string().optional(),
+          suburb: z.string().optional(),
+          phone: z.string().optional(),
+          website: z.string().url().optional().or(z.literal("")),
+          openingHours: z.string().optional(),
+          profileImage: z.string().optional(),
+          services: z.string().optional(),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        // Verify business exists
+        const business = await db.getBusinessById(input.businessId);
+        if (!business) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Business not found",
+          });
+        }
+
+        // Verify user owns the business or is admin
+        if (business.ownerId !== ctx.user.id && ctx.user.role !== "admin") {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "You can only update your own businesses",
+          });
+        }
+
+        // Prepare update data (only include fields that were provided)
+        const updateData: any = {};
+        if (input.businessName !== undefined)
+          updateData.businessName = input.businessName;
+        if (input.about !== undefined) updateData.about = input.about;
+        if (input.address !== undefined) updateData.address = input.address;
+        if (input.suburb !== undefined) updateData.suburb = input.suburb;
+        if (input.phone !== undefined) updateData.phone = input.phone;
+        if (input.website !== undefined) updateData.website = input.website;
+        if (input.openingHours !== undefined)
+          updateData.openingHours = input.openingHours;
+        if (input.profileImage !== undefined)
+          updateData.profileImage = input.profileImage;
+        if (input.services !== undefined) updateData.services = input.services;
+
+        await db.updateBusiness(input.businessId, updateData);
+
+        return {
+          success: true,
+          message: "Business profile updated successfully",
+        };
       }),
 
     /**
@@ -1563,6 +1638,127 @@ export const appRouter = router({
             message: `Failed to create payment: ${error instanceof Error ? error.message : "Unknown error"}`,
           });
         }
+      }),
+  }),
+
+  // ============ REVIEWS ROUTER ============
+  review: router({
+    /**
+     * Create a new review for a product (customer only)
+     */
+    create: protectedProcedure
+      .input(
+        z.object({
+          productId: z.number(),
+          rating: z.number().min(1).max(5),
+          title: z.string().max(200).optional(),
+          body: z.string().optional(),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        // Verify product exists
+        const product = await db.getProductById(input.productId);
+        if (!product) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Product not found",
+          });
+        }
+
+        // Check if user has already reviewed this product
+        const existingReviews = await db.getReviewsByCustomerId(ctx.user.id);
+        const alreadyReviewed = existingReviews.find(
+          r => r.productId === input.productId
+        );
+        if (alreadyReviewed) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "You have already reviewed this product",
+          });
+        }
+
+        // TODO: Verify purchase (check if user has completed order for this product)
+        // For now, default verifiedPurchase to false
+        const verifiedPurchase = false;
+
+        const review = await db.createReview({
+          productId: input.productId,
+          customerId: ctx.user.id,
+          rating: input.rating,
+          title: input.title || null,
+          body: input.body || null,
+          verifiedPurchase,
+          status: "pending_moderation", // All reviews require moderation
+        });
+
+        return {
+          success: true,
+          review,
+        };
+      }),
+
+    /**
+     * Get approved reviews for a product (public)
+     */
+    getByProduct: publicProcedure
+      .input(z.object({ productId: z.number() }))
+      .query(async ({ input }) => {
+        return await db.getApprovedReviewsByProductId(input.productId);
+      }),
+
+    /**
+     * Get reviews by customer (authenticated user)
+     */
+    getMine: protectedProcedure.query(async ({ ctx }) => {
+      return await db.getReviewsByCustomerId(ctx.user.id);
+    }),
+
+    /**
+     * Get rating stats for a product (public)
+     */
+    getStats: publicProcedure
+      .input(z.object({ productId: z.number() }))
+      .query(async ({ input }) => {
+        return await db.getProductRatingStats(input.productId);
+      }),
+
+    /**
+     * Moderate a review (admin only)
+     */
+    moderate: protectedProcedure
+      .input(
+        z.object({
+          reviewId: z.number(),
+          status: z.enum(["approved", "rejected"]),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user.role !== "admin") {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "Only admins can moderate reviews",
+          });
+        }
+
+        await db.updateReviewStatus(input.reviewId, input.status);
+
+        return {
+          success: true,
+          message: `Review ${input.status}`,
+        };
+      }),
+
+    /**
+     * Mark review as helpful (authenticated users)
+     */
+    markHelpful: protectedProcedure
+      .input(z.object({ reviewId: z.number() }))
+      .mutation(async ({ input }) => {
+        await db.incrementReviewHelpfulCount(input.reviewId);
+
+        return {
+          success: true,
+        };
       }),
   }),
 

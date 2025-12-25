@@ -38,6 +38,9 @@ import {
   productCategories,
   InsertProductCategory,
   ProductCategory,
+  reviews,
+  InsertReview,
+  Review,
 } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
@@ -256,6 +259,32 @@ export async function updateBusinessABN(
   return await db
     .update(businesses)
     .set(updateData)
+    .where(eq(businesses.id, businessId));
+}
+
+/**
+ * Update business details (for business profile editing)
+ */
+export async function updateBusiness(
+  businessId: number,
+  data: Partial<{
+    businessName: string;
+    about: string;
+    address: string;
+    suburb: string;
+    phone: string;
+    website: string;
+    openingHours: string;
+    profileImage: string;
+    services: string;
+  }>
+) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  return await db
+    .update(businesses)
+    .set({ ...data, updatedAt: new Date() })
     .where(eq(businesses.id, businessId));
 }
 
@@ -1494,4 +1523,186 @@ export async function getActiveVendorsForBilling(): Promise<VendorMeta[]> {
         isNotNull(vendorsMeta.stripeAccountId)
       )
     );
+}
+
+// ============ REVIEWS QUERIES (Phase 5) ============
+
+/**
+ * Create a new review for a product
+ */
+export async function createReview(data: InsertReview): Promise<Review> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const result = await db.insert(reviews).values(data);
+
+  // Fetch the created review
+  const created = await db
+    .select()
+    .from(reviews)
+    .where(eq(reviews.id, result[0].insertId))
+    .limit(1);
+
+  return created[0];
+}
+
+/**
+ * Get approved reviews for a product
+ */
+export async function getApprovedReviewsByProductId(
+  productId: number
+): Promise<Review[]> {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db
+    .select()
+    .from(reviews)
+    .where(and(eq(reviews.productId, productId), eq(reviews.status, "approved")))
+    .orderBy(desc(reviews.createdAt));
+}
+
+/**
+ * Get all reviews for a product (including pending/rejected for admin)
+ */
+export async function getAllReviewsByProductId(
+  productId: number
+): Promise<Review[]> {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db
+    .select()
+    .from(reviews)
+    .where(eq(reviews.productId, productId))
+    .orderBy(desc(reviews.createdAt));
+}
+
+/**
+ * Get reviews by customer ID
+ */
+export async function getReviewsByCustomerId(
+  customerId: number
+): Promise<Review[]> {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db
+    .select()
+    .from(reviews)
+    .where(eq(reviews.customerId, customerId))
+    .orderBy(desc(reviews.createdAt));
+}
+
+/**
+ * Update review status (for moderation)
+ */
+export async function updateReviewStatus(
+  reviewId: number,
+  status: "pending_moderation" | "approved" | "rejected"
+): Promise<void> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db
+    .update(reviews)
+    .set({ status, updatedAt: new Date() })
+    .where(eq(reviews.id, reviewId));
+}
+
+/**
+ * Get average rating and count for a product (approved reviews only)
+ */
+export async function getProductRatingStats(
+  productId: number
+): Promise<{ averageRating: number; reviewCount: number }> {
+  const db = await getDb();
+  if (!db) return { averageRating: 0, reviewCount: 0 };
+
+  const approvedReviews = await db
+    .select()
+    .from(reviews)
+    .where(and(eq(reviews.productId, productId), eq(reviews.status, "approved")));
+
+  if (approvedReviews.length === 0) {
+    return { averageRating: 0, reviewCount: 0 };
+  }
+
+  const sum = approvedReviews.reduce((acc, review) => acc + review.rating, 0);
+  const averageRating = Math.round((sum / approvedReviews.length) * 10) / 10; // Round to 1 decimal
+
+  return {
+    averageRating,
+    reviewCount: approvedReviews.length,
+  };
+}
+
+/**
+ * Get average rating for a vendor's business based on all their products
+ * This calculates the overall business rating from approved product reviews
+ */
+export async function getBusinessRatingStats(
+  vendorId: number
+): Promise<{ averageRating: number; reviewCount: number }> {
+  const db = await getDb();
+  if (!db) return { averageRating: 0, reviewCount: 0 };
+
+  // Get all products for this vendor
+  const vendorProducts = await db
+    .select()
+    .from(products)
+    .where(eq(products.vendorId, vendorId));
+
+  if (vendorProducts.length === 0) {
+    return { averageRating: 0, reviewCount: 0 };
+  }
+
+  const productIds = vendorProducts.map((p) => p.id);
+
+  // Get all approved reviews for these products
+  const { inArray } = require("drizzle-orm");
+  const allReviews = await db
+    .select()
+    .from(reviews)
+    .where(
+      and(inArray(reviews.productId, productIds), eq(reviews.status, "approved"))
+    );
+
+  if (allReviews.length === 0) {
+    return { averageRating: 0, reviewCount: 0 };
+  }
+
+  const sum = allReviews.reduce((acc, review) => acc + review.rating, 0);
+  const averageRating = Math.round((sum / allReviews.length) * 10) / 10; // Round to 1 decimal
+
+  return {
+    averageRating,
+    reviewCount: allReviews.length,
+  };
+}
+
+/**
+ * Increment helpful count for a review
+ */
+export async function incrementReviewHelpfulCount(
+  reviewId: number
+): Promise<void> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const review = await db
+    .select()
+    .from(reviews)
+    .where(eq(reviews.id, reviewId))
+    .limit(1);
+
+  if (review.length > 0) {
+    await db
+      .update(reviews)
+      .set({
+        helpfulCount: (review[0].helpfulCount || 0) + 1,
+        updatedAt: new Date(),
+      })
+      .where(eq(reviews.id, reviewId));
+  }
 }

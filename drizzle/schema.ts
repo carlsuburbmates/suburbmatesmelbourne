@@ -556,6 +556,7 @@ export const businessClaimsRelations = relations(businessClaims, ({ one }) => ({
 export const productsRelations = relations(products, ({ many }) => ({
   orders: many(orders),
   productCategories: many(productCategories),
+  reviews: many(reviews),
 }));
 
 export const ordersRelations = relations(orders, ({ one, many }) => ({
@@ -809,3 +810,67 @@ export const categoriesRelations = relations(
     productCategories: many(productCategories),
   })
 );
+
+/**
+ * PHASE 5 REVIEWS & RATINGS SYSTEM
+ * ================================
+ * Reviews table for product/business ratings
+ * Supports verified purchases, moderation, and helpfulness tracking
+ */
+export const reviews = mysqlTable(
+  "reviews",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    productId: int("productId").notNull(),
+    customerId: int("customerId").notNull(),
+    rating: int("rating").notNull(), // 1-5 stars
+    title: varchar("title", { length: 200 }),
+    body: text("body"),
+    verifiedPurchase: boolean("verifiedPurchase").default(true).notNull(),
+    helpfulCount: int("helpfulCount").default(0).notNull(),
+    status: mysqlEnum("status", [
+      "pending_moderation",
+      "approved",
+      "rejected",
+    ])
+      .default("pending_moderation")
+      .notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  (table) => ({
+    productIdIdx: index("productIdIdx").on(table.productId),
+    customerIdIdx: index("customerIdIdx").on(table.customerId),
+    statusIdx: index("statusIdx").on(table.status),
+    ratingIdx: index("ratingIdx").on(table.rating),
+    productFk: foreignKey({
+      columns: [table.productId],
+      foreignColumns: [products.id],
+    })
+      .onDelete("cascade")
+      .onUpdate("cascade"),
+    customerFk: foreignKey({
+      columns: [table.customerId],
+      foreignColumns: [users.id],
+    })
+      .onDelete("cascade")
+      .onUpdate("cascade"),
+  })
+);
+
+export type Review = typeof reviews.$inferSelect;
+export type InsertReview = typeof reviews.$inferInsert;
+
+/**
+ * Reviews relations
+ */
+export const reviewsRelations = relations(reviews, ({ one }) => ({
+  product: one(products, {
+    fields: [reviews.productId],
+    references: [products.id],
+  }),
+  customer: one(users, {
+    fields: [reviews.customerId],
+    references: [users.id],
+  }),
+}));

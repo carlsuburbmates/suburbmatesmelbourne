@@ -95,6 +95,10 @@ router.post(
           await handleInvoicePaymentFailed(event);
           break;
 
+        case "checkout.session.completed":
+          await handleCheckoutSessionCompleted(event);
+          break;
+
         default:
           console.log(`Unhandled event type: ${event.type}`);
       }
@@ -597,6 +601,73 @@ async function handleInvoicePaymentFailed(event: Stripe.Event) {
     // TODO: Consider downgrading tier if payment remains unpaid after retry period
   } catch (error) {
     console.error(`Failed to handle invoice payment failure:`, error);
+  }
+}
+
+/**
+ * Handle checkout.session.completed event
+ * Triggered when a Checkout Session is completed successfully
+ * Used for subscription upgrades and one-time payments
+ */
+async function handleCheckoutSessionCompleted(event: Stripe.Event) {
+  const session = event.data.object as Stripe.Checkout.Session;
+  const metadata = session.metadata || {};
+
+  console.log(`Checkout session completed: ${session.id}`, metadata);
+
+  // Handle subscription checkout (vendor tier upgrade)
+  if (session.mode === "subscription" && metadata.vendorId) {
+    const vendorId = parseInt(metadata.vendorId, 10);
+    
+    try {
+      // Get the subscription ID from the session
+      const subscriptionId = session.subscription as string;
+      
+      if (subscriptionId) {
+        // Retrieve subscription details
+        const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+        const renewsAt = new Date((subscription as any).current_period_end * 1000);
+        
+        // Determine tier based on metadata or subscription details
+        const tier = metadata.tier === "featured" ? "featured_active" : "basic_active";
+        
+        // Update vendor subscription status
+        await db.updateSubscriptionStatus(vendorId, tier, renewsAt);
+        
+        console.log(
+          `Vendor ${vendorId} upgraded to ${tier} tier via checkout. Renews at: ${renewsAt.toISOString()}`
+        );
+      }
+    } catch (error) {
+      console.error(
+        `Failed to handle subscription checkout completion for vendor ${vendorId}:`,
+        error
+      );
+    }
+  }
+
+  // Handle order payment (marketplace purchases)
+  if (session.mode === "payment" && metadata.orderId) {
+    const orderId = parseInt(metadata.orderId, 10);
+    
+    try {
+      const order = await db.getOrderById(orderId);
+      if (!order) {
+        console.warn(`Order ${orderId} not found`);
+        return;
+      }
+
+      // Only update if order is still pending
+      if (order.status === "pending") {
+        await db.updateOrderStatus(orderId, "completed");
+        console.log(`Updated order ${orderId} to completed status via checkout`);
+      }
+    } catch (error) {
+      console.error(
+        `Failed to handle order checkout completion for order ${orderId}:`,
+        error
+      );
+    }
   }
 }
 
